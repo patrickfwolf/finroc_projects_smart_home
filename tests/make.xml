@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE targets PUBLIC "-//RRLIB//DTD make 14.05" "http://finroc.org/xml/14.05/make.dtd">
+<targets>
+
+  <program name="pt1000" sources="pt1000.cpp" />
+  <program name="state_machine" sources="state_machine.cpp" />
+
+</targets>

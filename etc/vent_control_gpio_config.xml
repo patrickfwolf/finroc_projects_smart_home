@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<raspberry_io_config>
+  <!-- Vent -->  
+  <port pin="8" type="digital" direction="output" name="Gpio Ventilation"/>
+</raspberry_io_config>

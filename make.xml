@@ -1,0 +1,61 @@
+<targets>  
+  <library name="control">
+    <sources>
+      heat_control/mController.cpp
+      heat_control/mHardwareAbstraction.cpp
+      vent_control/mController.cpp
+      user_interface/mLED.cpp
+    </sources>
+  </library> 
+  
+  <library name="shared">
+    <sources>
+      shared/tMCP3008Converter.h
+      shared/tPT1000Converter.cpp
+      shared/pt1000_lookup.h
+      shared/tPumps.h
+      shared/tTemperatures.h
+    </sources>
+  </library> 
+  
+  <library name="heat_control_states">
+    <sources>
+      heat_control_states/tState.h
+      heat_control_states/tSolar.cpp
+      heat_control_states/tRoomSolar.cpp
+      heat_control_states/tRoomGround.cpp
+      heat_control_states/tRoom.cpp
+      heat_control_states/tReady.cpp
+      heat_control_states/tGroundSolar.cpp
+      heat_control_states/tGroundRoomSolar.cpp
+      heat_control_states/tGround.cpp
+    </sources>
+  </library>      
+ 
+  <library name="hardware" optionallibs="wiringPi">
+    <sources>
+      heat_control/gHeatControl.cpp
+      vent_control/gVentControl.cpp
+      user_interface/gUserInterface.cpp
+     </sources>
+  </library> 
+  
+  <finrocprogram name="HeatControl">
+    <sources>
+      heat_control/pHeatControl.cpp
+    </sources>
+  </finrocprogram>
+  
+  <finrocprogram name="VentControl">
+    <sources>
+      vent_control/pVentControl.cpp
+    </sources>
+  </finrocprogram>
+  
+  <finrocprogram name="UserInterface">
+    <sources>
+      user_interface/pUserInterface.cpp
+    </sources>
+  </finrocprogram>
+  
+</targets>

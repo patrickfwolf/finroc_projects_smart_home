@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<raspberry_io_config>
+  <!-- MCP3008 -->
+  <port pin="0" type="analog" direction="input" name="Mcp3008 Ad Voltage Solar"/>
+  <port pin="1" type="analog" direction="input" name="Mcp3008 Ad Voltage Raum"/>
+  <port pin="2" type="analog" direction="input" name="Mcp3008 Ad Voltage Speicher"/>
+  <port pin="3" type="analog" direction="input" name="Mcp3008 Ad Voltage Boden"/>
+  
+  <!-- Pumps -->  
+  <port pin="8" type="digital" direction="output" name="Gpio Pump Online Solar"/>
+  <port pin="9" type="digital" direction="output" name="Gpio Pump Online Boden"/>
+  <port pin="0" type="digital" direction="output" name="Gpio Pump Online Raum"/>
+</raspberry_io_config>

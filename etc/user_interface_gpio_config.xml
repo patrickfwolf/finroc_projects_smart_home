@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<raspberry_io_config>
+  <!-- LEDs -->  
+  <port pin="19" type="digital" direction="output" name="Green"/>
+  <port pin="18" type="digital" direction="output" name="Red"/>
+  <port pin="17" type="digital" direction="output" name="Yellow"/>
+</raspberry_io_config>

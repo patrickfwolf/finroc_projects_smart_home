@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <node name=heat_control">
+	  <node name="filter_boden">
+	  	<value name="weight">0.0025</value>
+	  </node>
+	  <node name="filter_raum">
+	  	<value name="weight">0.0005</value>
+      </node>
+	  <node name="filter_solar">
+	  	<value name="weight">0.0025</value>
+	  </node>
+	  <node name="filter_speicher">
+	   	<value name="weight">0.0025</value>
+	  </node>
+	  <node name="hardware">
+	  	<value name="mcp3008_reference_voltage">5.0</value>
+	  	<value name="mcp3008_supply_voltage">5.0</value>
+	  	<value name="pt1000_pre_resistance_boden">1800</value>
+	  	<value name="pt1000_pre_resistance_raum">1800</value>
+	  	<value name="pt1000_pre_resistance_solar">1800</value>
+	  	<value name="pt1000_pre_resistance_speicher">1800</value>
+	  </node>
+	  <node name="temperatures">
+	  	<value name="set_point_temperature_raum">21.0</value>
+	  	<value name="threshold_set_temperature_raum_hi">21.0</value>
+	  	<value name="threshold_set_point_temperature_raum_low">21.0</value>
+	  	<value name="set_point_temperature_raum">21.0</value>
+	  	<value name="set_point_temperature_raum">21.0</value>
+	  	<value name="set_point_temperature_raum">21.0</value>
+	  	<value name="set_point_temperature_raum">21.0</value>
+	  	<value name="set_point_temperature_raum">21.0</value>
+	  	<value name="set_point_temperature_raum">21.0</value>
+	  	<value name="set_point_temperature_raum">21.0</value>
+	  </node>
+	  <node name="led">
+		<value name="set_point_temperature_raum">21.0</value>
+	  	<value name="set_point_temperature_raum">21.0</value>
+	  	<value name="set_point_temperature_raum">21.0</value>
+	  </node>
+  </heat_control>
+</root>
