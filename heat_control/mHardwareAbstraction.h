@@ -45,7 +45,7 @@
 //----------------------------------------------------------------------
 // Internal includes with ""
 //----------------------------------------------------------------------
-#include "projects/smart_home/shared/tPT1000Converter.h"
+#include "projects/smart_home/shared/tPT.h"
 #include "projects/smart_home/shared/tMCP3008Converter.h"
 
 //----------------------------------------------------------------------
@@ -151,7 +151,7 @@ private:
       const rrlib::si_units::tVoltage<double> & ad_supply_voltage,
       const rrlib::si_units::tElectricResistance<double> & sensor_pre_resistance) const;
 
-  shared::tPT1000Converter pt1000_converter_;
+  shared::tPT1000 pt1000_converter_;
   shared::tMCP3008Converter mcp3008_converter_;
 
   bool pump_boden_online_;

@@ -40,7 +40,7 @@
 //----------------------------------------------------------------------
 #include <cassert>
 
-#include "projects/smart_home/shared/tPT1000Converter.h"
+#include "projects/smart_home/shared/tPT.h"
 
 //----------------------------------------------------------------------
 // Namespace usage
@@ -77,30 +77,47 @@ private:
 
   void Coversions()
   {
-    shared::tPT1000Converter pt1000;
+    shared::tPT1000 pt1000;
+    shared::tPT100 pt100;
 
-    RRLIB_UNIT_TESTS_EQUALITY(pt1000.GetResistanceFromTemperature(rrlib::si_units::tCelsius<double>(0.0)), rrlib::si_units::tElectricResistance<double>(1000.0));
-    RRLIB_UNIT_TESTS_EQUALITY(pt1000.GetResistanceFromTemperature(rrlib::si_units::tCelsius<double>(10.0)), shared::cPT1000_LOOKUP.at(210));
+    RRLIB_UNIT_TESTS_EQUALITY(pt1000.GetResistance(rrlib::si_units::tCelsius<double>(0.0)), rrlib::si_units::tElectricResistance<double>(1000.0));
+    RRLIB_UNIT_TESTS_EQUALITY(pt100.GetResistance(rrlib::si_units::tCelsius<double>(0.0)), rrlib::si_units::tElectricResistance<double>(100.0));
 
-    RRLIB_UNIT_TESTS_EQUALITY(pt1000.GetTemperatureFromResistance(rrlib::si_units::tElectricResistance<double>(1000.0)), rrlib::si_units::tCelsius<double>(0.0));
+    RRLIB_UNIT_TESTS_EQUALITY(pt1000.GetTemperature(rrlib::si_units::tElectricResistance<double>(1000.0)), rrlib::si_units::tCelsius<double>(0.0));
+    RRLIB_UNIT_TESTS_EQUALITY(pt100.GetTemperature(rrlib::si_units::tElectricResistance<double>(100.0)), rrlib::si_units::tCelsius<double>(0.0));
 
+    RRLIB_UNIT_TESTS_EQUALITY_DOUBLE(pt1000.GetTemperature(pt1000.GetResistance(rrlib::si_units::tCelsius<double>(50.0))).ValueFactored(), 50.0, 0.001);
+    RRLIB_UNIT_TESTS_EQUALITY_DOUBLE(pt100.GetTemperature(pt100.GetResistance(rrlib::si_units::tCelsius<double>(50.0))).ValueFactored(), 50.0, 0.001);
 
-    RRLIB_UNIT_TESTS_EQUALITY(pt1000.GetTemperatureFromResistance(pt1000.GetResistanceFromTemperature(rrlib::si_units::tCelsius<double>(50.0))),
-        rrlib::si_units::tCelsius<double>(50.0));
-    RRLIB_UNIT_TESTS_EQUALITY(pt1000.GetTemperatureFromResistance(pt1000.GetResistanceFromTemperature(rrlib::si_units::tCelsius<double>(40.0))),
-        rrlib::si_units::tCelsius<double>(40.0));
-    RRLIB_UNIT_TESTS_EQUALITY(pt1000.GetTemperatureFromResistance(pt1000.GetResistanceFromTemperature(rrlib::si_units::tCelsius<double>(30.0))),
-        rrlib::si_units::tCelsius<double>(30.0));
-    RRLIB_UNIT_TESTS_EQUALITY(pt1000.GetTemperatureFromResistance(pt1000.GetResistanceFromTemperature(rrlib::si_units::tCelsius<double>(20.0))),
-        rrlib::si_units::tCelsius<double>(20.0));
-    RRLIB_UNIT_TESTS_EQUALITY(pt1000.GetTemperatureFromResistance(pt1000.GetResistanceFromTemperature(rrlib::si_units::tCelsius<double>(10.0))),
-        rrlib::si_units::tCelsius<double>(10.0));
-//    RRLIB_UNIT_TESTS_EQUALITY(pt1000.GetTemperatureFromResistance(pt1000.GetResistanceFromTemperature(rrlib::si_units::tCelsius<double>(2.3))),
-//        rrlib::si_units::tCelsius<double>(2.3));
-    RRLIB_UNIT_TESTS_EQUALITY(pt1000.GetTemperatureFromResistance(pt1000.GetResistanceFromTemperature(rrlib::si_units::tCelsius<double>(0.0))),
-        rrlib::si_units::tCelsius<double>(0.0));
-//    RRLIB_UNIT_TESTS_EQUALITY(pt1000.GetTemperatureFromResistance(pt1000.GetResistanceFromTemperature(rrlib::si_units::tCelsius<double>(-10.0))),
-//        rrlib::si_units::tCelsius<double>(-10.0));
+    RRLIB_UNIT_TESTS_EQUALITY_DOUBLE(pt1000.GetTemperature(pt1000.GetResistance(rrlib::si_units::tCelsius<double>(40.0))).ValueFactored(), 40.0, 0.001);
+    RRLIB_UNIT_TESTS_EQUALITY_DOUBLE(pt100.GetTemperature(pt100.GetResistance(rrlib::si_units::tCelsius<double>(40.0))).ValueFactored(), 40.0, 0.001);
+
+    RRLIB_UNIT_TESTS_EQUALITY_DOUBLE(pt1000.GetTemperature(pt1000.GetResistance(rrlib::si_units::tCelsius<double>(30.0))).ValueFactored(), 30.0, 0.001);
+    RRLIB_UNIT_TESTS_EQUALITY_DOUBLE(pt100.GetTemperature(pt100.GetResistance(rrlib::si_units::tCelsius<double>(30.0))).ValueFactored(), 30.0, 0.001);
+
+    RRLIB_UNIT_TESTS_EQUALITY_DOUBLE(pt1000.GetTemperature(pt1000.GetResistance(rrlib::si_units::tCelsius<double>(20.0))).ValueFactored(), 20.0, 0.001);
+    RRLIB_UNIT_TESTS_EQUALITY_DOUBLE(pt100.GetTemperature(pt100.GetResistance(rrlib::si_units::tCelsius<double>(20.0))).ValueFactored(), 20.0, 0.001);
+
+    RRLIB_UNIT_TESTS_EQUALITY_DOUBLE(pt1000.GetTemperature(pt1000.GetResistance(rrlib::si_units::tCelsius<double>(10.0))).ValueFactored(), 10.0, 0.001);
+    RRLIB_UNIT_TESTS_EQUALITY_DOUBLE(pt100.GetTemperature(pt100.GetResistance(rrlib::si_units::tCelsius<double>(10.0))).ValueFactored(), 10.0, 0.001);
+
+    RRLIB_UNIT_TESTS_EQUALITY_DOUBLE(pt1000.GetTemperature(pt1000.GetResistance(rrlib::si_units::tCelsius<double>(0.0))).ValueFactored(), 0.0, 0.001);
+    RRLIB_UNIT_TESTS_EQUALITY_DOUBLE(pt100.GetTemperature(pt100.GetResistance(rrlib::si_units::tCelsius<double>(0.0))).ValueFactored(), 0.0, 0.001);
+
+    RRLIB_UNIT_TESTS_EQUALITY_DOUBLE(pt1000.GetTemperature(pt1000.GetResistance(rrlib::si_units::tCelsius<double>(13.3))).ValueFactored(), 13.3, 0.001);
+    RRLIB_UNIT_TESTS_EQUALITY_DOUBLE(pt100.GetTemperature(pt100.GetResistance(rrlib::si_units::tCelsius<double>(13.3))).ValueFactored(), 13.3, 0.001);
+
+    RRLIB_UNIT_TESTS_EQUALITY_DOUBLE(pt1000.GetTemperature(pt1000.GetResistance(rrlib::si_units::tCelsius<double>(2.7))).ValueFactored(), 2.7, 0.001);
+    RRLIB_UNIT_TESTS_EQUALITY_DOUBLE(pt100.GetTemperature(pt100.GetResistance(rrlib::si_units::tCelsius<double>(2.7))).ValueFactored(), 2.7, 0.001);
+
+    RRLIB_UNIT_TESTS_EQUALITY_DOUBLE(pt1000.GetTemperature(pt1000.GetResistance(rrlib::si_units::tCelsius<double>(-50.0))).ValueFactored(), -50.0, 0.1);
+    RRLIB_UNIT_TESTS_EQUALITY_DOUBLE(pt100.GetTemperature(pt100.GetResistance(rrlib::si_units::tCelsius<double>(-50.0))).ValueFactored(), -50.0, 0.1);
+
+    RRLIB_UNIT_TESTS_EQUALITY_DOUBLE(pt1000.GetTemperature(pt1000.GetResistance(rrlib::si_units::tCelsius<double>(-10.0))).ValueFactored(), -10.0, 0.1);
+    RRLIB_UNIT_TESTS_EQUALITY_DOUBLE(pt100.GetTemperature(pt100.GetResistance(rrlib::si_units::tCelsius<double>(-10.0))).ValueFactored(), -10.0, 0.1);
+
+    RRLIB_UNIT_TESTS_EQUALITY_DOUBLE(pt1000.GetTemperature(pt1000.GetResistance(rrlib::si_units::tCelsius<double>(-5.0))).ValueFactored(), -5.0, 0.1);
+    RRLIB_UNIT_TESTS_EQUALITY_DOUBLE(pt100.GetTemperature(pt100.GetResistance(rrlib::si_units::tCelsius<double>(-5.0))).ValueFactored(), -5.0, 0.1);
 
   }
 

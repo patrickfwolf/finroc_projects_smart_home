@@ -132,10 +132,10 @@ void mHardwareAbstraction::Sense()
     so_temperature_room.Publish(temperature_room);
     so_temperature_solar.Publish(temperature_solar);
 
-    so_resistance_boiler.Publish(pt1000_converter_.GetResistanceFromTemperature(temperature_boiler));
-    so_resistance_ground.Publish(pt1000_converter_.GetResistanceFromTemperature(temperature_ground));
-    so_resistance_room.Publish(pt1000_converter_.GetResistanceFromTemperature(temperature_room));
-    so_resistance_solar.Publish(pt1000_converter_.GetResistanceFromTemperature(temperature_solar));
+    so_resistance_boiler.Publish(pt1000_converter_.GetResistance(temperature_boiler));
+    so_resistance_ground.Publish(pt1000_converter_.GetResistance(temperature_ground));
+    so_resistance_room.Publish(pt1000_converter_.GetResistance(temperature_room));
+    so_resistance_solar.Publish(pt1000_converter_.GetResistance(temperature_solar));
 
   }
 }
@@ -189,7 +189,7 @@ rrlib::si_units::tCelsius<double> mHardwareAbstraction::PT1000MCP3008VoltageToTe
    */
 
   rrlib::si_units::tElectricResistance<double> resistance = sensor_pre_resistance * ((ad_supply_voltage / ad_output_voltage).Value() - 1.0);
-  return pt1000_converter_.GetTemperatureFromResistance(resistance);
+  return pt1000_converter_.GetTemperature(resistance);
 }
 
 

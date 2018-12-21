@@ -11,7 +11,7 @@
   <library name="shared">
     <sources>
       shared/tMCP3008Converter.h
-      shared/tPT1000Converter.cpp
+      shared/tPT.h
       shared/pt1000_lookup.h
       shared/tPumps.h
       shared/tTemperatures.h
