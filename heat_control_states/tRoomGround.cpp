@@ -67,8 +67,8 @@ namespace heat_control_states
 
     // Raumtemperatur über Sollwert +0,8°C oder Speichertemperatur niedriger als Raumtemperatur or Speicher zu warm.
     if ((temperatures.GetRoom() >= (temperatures.GetRoomSetPoint() + shared::cROOM_DIFF_SETPOINT_HIGH)) or
-        (temperatures.GetBoiler() >= shared::cROOM_DIFF_BOILER_HIGH) or
-        (temperatures.GetBoiler() < temperatures.GetRoom() + shared::cROOM_DIFF_SETPOINT_LOW))
+        (temperatures.GetBoiler() >= shared::cROOM_BOILER_MAX) or
+        (temperatures.GetBoiler() < temperatures.GetRoom() - shared::cROOM_DIFF_BOILER_LOW))
     {
       state = std::unique_ptr<tState>(new tGround());
       this->SetChanged(true);

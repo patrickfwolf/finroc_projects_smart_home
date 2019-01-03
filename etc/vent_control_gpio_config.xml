@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <raspberry_io_config>
   <!-- Vent -->  
-  <port pin="8" type="digital" direction="output" name="Gpio Ventilation"/>
+  <port pin="8" type="digital" direction="output" name="GPIO Ventilation"/>
+
+  <port pin="9" type="digital" direction="input" name="GPIO MQ9"/>
+  
+  <port pin="0" type="analog" direction="input" name="MCP3008 AD Voltage PT100"/>
+  <port pin="1" type="analog" direction="input" name="MCP3008 AD Voltage MQ9"/>
 </raspberry_io_config>

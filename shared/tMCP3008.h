@@ -19,30 +19,27 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 //----------------------------------------------------------------------
-/*!\file    projects/smart_home/vent/gVentControl.h
+/*!\file    projects/smart_home/heat_control/tMCP3008.h
  *
  * \author  Patrick Wolf
  *
- * \date    2015-03-11
+ * \date    2015-05-07
  *
- * \brief Contains gVentControl
+ * \brief   Contains tMCP3008.h
  *
- * \b gVentControl
+ * \b tMCP3008.h
  *
- * Control group for the raspberry pi heating contol.
+ * Converter for MCP3008 output.
  *
  */
 //----------------------------------------------------------------------
-#ifndef __projects__smart_home__vent_control__gVentControl_h__
-#define __projects__smart_home__vent_control__gVentControl_h__
-
-#include "plugins/structure/tGroup.h"
+#ifndef __projects__smart_home__heat_control__tMCP3008_h__
+#define __projects__smart_home__heat_control__tMCP3008_h__
 
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
 //----------------------------------------------------------------------
 #include "rrlib/si_units/si_units.h"
-
 
 //----------------------------------------------------------------------
 // Internal includes with ""
@@ -55,61 +52,84 @@ namespace finroc
 {
 namespace smart_home
 {
-namespace vent_control
+namespace shared
 {
 
 //----------------------------------------------------------------------
 // Forward declarations / typedefs / enums
 //----------------------------------------------------------------------
+static const unsigned short cMCP3008_RESOLUTION = 1024;
 
 //----------------------------------------------------------------------
 // Class declaration
 //----------------------------------------------------------------------
 //! SHORT_DESCRIPTION
 /*!
- * Control group for the raspberry pi heating contol.
+ * Converter for MCP3008 output.
  */
-class gVentControl : public structure::tGroup
+class tMCP3008
 {
-
-//----------------------------------------------------------------------
-// Ports (These are the only variables that may be declared public)
-//----------------------------------------------------------------------
-public:
-
-  tInput<rrlib::si_units::tCelsius<double>> in_temperature_furnace;
-
-  tOutput<bool> out_ventilation;
-  tOutput<rrlib::si_units::tCelsius<double>> out_pt100_temperature_room;
-  tOutput<rrlib::si_units::tCelsius<double>> out_bmp180_temperature_room;
-  tOutput<rrlib::si_units::tPressure<double>> out_air_pressure_room;
-  tOutput<rrlib::si_units::tAmountOfSubstance<double>> out_carbon_monoxid_room;
-  tOutput<bool> out_carbon_monoxid_threshold_room;
 
 //----------------------------------------------------------------------
 // Public methods and typedefs
 //----------------------------------------------------------------------
 public:
 
-  gVentControl(core::tFrameworkElement *parent, const std::string &name = "VentControl",
-               const std::string &structure_config_file = __FILE__".xml");
-
-//----------------------------------------------------------------------
-// Protected methods
-//----------------------------------------------------------------------
-protected:
-
-  /*! Destructor
-   *
-   * The destructor of groups is declared protected to avoid accidental deletion. Deleting
-   * groups is already handled by the framework.
+  /*!
+   * Constructor
+   * @param reference_voltage reference voltage for MCP3008
    */
-  ~gVentControl();
+  tMCP3008(const rrlib::si_units::tVoltage<double> & reference_voltage):
+    reference_voltage_(reference_voltage)
+  {}
+
+  /*!
+   * Destructor
+   */
+  ~tMCP3008()
+  {}
+
+  /*!
+   * Sets the reference voltage of MCP3008
+   * @param reference_voltage reference voltage
+   */
+  inline void SetReferenceVoltage(const rrlib::si_units::tVoltage<double> & reference_voltage)
+  {
+    reference_voltage_ = reference_voltage;
+  }
+
+  /*!
+   * Getter for reference voltage
+   * @return reference voltage of MCP3008
+   */
+  inline rrlib::si_units::tVoltage<double> GetReferenceVoltage() const
+  {
+    return reference_voltage_;
+  }
+
+  /*!
+   * Converts the value of the MCP3008 output to a voltage
+   * @param ad_value value of MCP3008 output
+   * @return voltage
+   */
+  inline rrlib::si_units::tVoltage<double> ConvertADValueToVoltage(unsigned short ad_value) const
+  {
+    // mcp3008 is 10 bit converter
+    if (ad_value + 1 > cMCP3008_RESOLUTION)
+    {
+      RRLIB_LOG_PRINT(ERROR, "MCP3008 output larger than 10bit. Output has ", std::ceil(std::log10(static_cast<double>(ad_value + 1)) / std::log10(2.0)), " bit.");
+      return reference_voltage_;
+    }
+    double ratio = static_cast<double>(ad_value) / static_cast<double>(cMCP3008_RESOLUTION - 1);
+    return reference_voltage_ * ratio;
+  }
 
 //----------------------------------------------------------------------
 // Private fields and methods
 //----------------------------------------------------------------------
 private:
+
+  rrlib::si_units::tVoltage<double> reference_voltage_;
 
 };
 

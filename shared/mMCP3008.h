@@ -19,34 +19,33 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 //----------------------------------------------------------------------
-/*!\file    projects/smart_home/vent/gVentControl.h
+/*!\file    projects/smart_home/heat_control/mMCP3008.h
  *
  * \author  Patrick Wolf
  *
- * \date    2015-03-11
+ * \date    2015-03-12
  *
- * \brief Contains gVentControl
+ * \brief Contains mMCP3008
  *
- * \b gVentControl
+ * \b mMCP3008
  *
- * Control group for the raspberry pi heating contol.
+ * MCP 3008 A/D converter, reads raw unsigned voltage and provides SI voltage output.
  *
  */
 //----------------------------------------------------------------------
-#ifndef __projects__smart_home__vent_control__gVentControl_h__
-#define __projects__smart_home__vent_control__gVentControl_h__
+#ifndef __projects__smart_home__shared__mMCP3008_h__
+#define __projects__smart_home__shared__mMCP3008_h__
 
-#include "plugins/structure/tGroup.h"
+#include "plugins/structure/tModule.h"
 
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
 //----------------------------------------------------------------------
-#include "rrlib/si_units/si_units.h"
-
 
 //----------------------------------------------------------------------
 // Internal includes with ""
 //----------------------------------------------------------------------
+#include "projects/smart_home/shared/tMCP3008.h"
 
 //----------------------------------------------------------------------
 // Namespace declaration
@@ -55,7 +54,7 @@ namespace finroc
 {
 namespace smart_home
 {
-namespace vent_control
+namespace shared
 {
 
 //----------------------------------------------------------------------
@@ -67,9 +66,10 @@ namespace vent_control
 //----------------------------------------------------------------------
 //! SHORT_DESCRIPTION
 /*!
- * Control group for the raspberry pi heating contol.
+ * MCP 3008 A/D converter, reads raw unsigned voltage and provides SI voltage output.
  */
-class gVentControl : public structure::tGroup
+template<size_t Tchannels>
+class mMCP3008 : public structure::tModule
 {
 
 //----------------------------------------------------------------------
@@ -77,22 +77,28 @@ class gVentControl : public structure::tGroup
 //----------------------------------------------------------------------
 public:
 
-  tInput<rrlib::si_units::tCelsius<double>> in_temperature_furnace;
+  std::vector<tInput<unsigned short>> in_voltage_raw;
 
-  tOutput<bool> out_ventilation;
-  tOutput<rrlib::si_units::tCelsius<double>> out_pt100_temperature_room;
-  tOutput<rrlib::si_units::tCelsius<double>> out_bmp180_temperature_room;
-  tOutput<rrlib::si_units::tPressure<double>> out_air_pressure_room;
-  tOutput<rrlib::si_units::tAmountOfSubstance<double>> out_carbon_monoxid_room;
-  tOutput<bool> out_carbon_monoxid_threshold_room;
+  std::vector<tOutput<rrlib::si_units::tVoltage<double>>> out_voltage;
+
+  tParameter<rrlib::si_units::tVoltage<double>> par_reference_voltage;
 
 //----------------------------------------------------------------------
 // Public methods and typedefs
 //----------------------------------------------------------------------
 public:
 
-  gVentControl(core::tFrameworkElement *parent, const std::string &name = "VentControl",
-               const std::string &structure_config_file = __FILE__".xml");
+  mMCP3008(core::tFrameworkElement *parent, const std::string &name = "MCP3008"):
+    tModule(parent, name),
+    par_reference_voltage(5.0),
+    mcp3008_(5.0)
+  {
+    for (std::size_t i = 0; i < Tchannels; i++)
+    {
+      in_voltage_raw.emplace_back(tInput<unsigned short>(this, "Voltage Raw " + std::to_string(i)));
+      out_voltage.emplace_back(tOutput<rrlib::si_units::tVoltage<double>>(this, "Voltage " + std::to_string(i)));
+    }
+  }
 
 //----------------------------------------------------------------------
 // Protected methods
@@ -101,15 +107,33 @@ protected:
 
   /*! Destructor
    *
-   * The destructor of groups is declared protected to avoid accidental deletion. Deleting
-   * groups is already handled by the framework.
+   * The destructor of modules is declared protected to avoid accidental deletion. Deleting
+   * modules is already handled by the framework.
    */
-  ~gVentControl();
+  ~mMCP3008() {};
 
 //----------------------------------------------------------------------
 // Private fields and methods
 //----------------------------------------------------------------------
 private:
+
+  inline virtual void OnParameterChange() override
+  {
+    mcp3008_.SetReferenceVoltage(par_reference_voltage.Get());
+  }
+
+  inline virtual void Update() override
+  {
+	  if(this->InputChanged())
+	  {
+    for (std::size_t i = 0; i < Tchannels; i++)
+    {
+      out_voltage.at(i).Publish(mcp3008_.ConvertADValueToVoltage(in_voltage_raw.at(i).Get()), in_voltage_raw.at(i).GetTimestamp());
+    }
+	  }
+  }
+
+  shared::tMCP3008 mcp3008_;
 
 };
 
@@ -119,6 +143,7 @@ private:
 }
 }
 }
+
 
 
 #endif

@@ -79,15 +79,10 @@ void StartUp()
 //----------------------------------------------------------------------
 void CreateMainGroup(const std::vector<std::string> &remaining_arguments)
 {
-  finroc::structure::tTopLevelThreadContainer<> *main_thread = new finroc::structure::tTopLevelThreadContainer<>("Main Thread", __FILE__".xml", true, make_all_port_links_unique);
+  auto main_thread = new finroc::structure::tTopLevelThreadContainer<>("Main Thread", __FILE__".xml", true, make_all_port_links_unique);
+  main_thread->SetCycleTime(std::chrono::milliseconds(200));
 
   auto ventilation = new finroc::smart_home::vent_control::gVentControl(main_thread);
-  ventilation->in_temperature_speicher.ConnectTo("/Main Thread/RaspberryPiHeatingControl/Output/Temperature Speicher");
-  ventilation->in_temperature_speicher.ConnectTo("/Main Thread/HeatControl/Sensor Output/Temperature Speicher");
-  ventilation->in_temperature_solar.ConnectTo("/Main Thread/RaspberryPiHeatingControl/Output/Temperature Solar");
-  ventilation->in_temperature_solar.ConnectTo("/Main Thread/HeatControl/Sensor Output/Temperature Solar");
-  ventilation->in_solar_online.ConnectTo("/Main Thread/RaspberryPiHeatingControl/Output/Pump Online Solar");
-  ventilation->in_solar_online.ConnectTo("/Main Thread/HeatControl/Sensor Output/Pump Online Solar");
+  ventilation->in_temperature_furnace.ConnectTo("");
 
-  main_thread->SetCycleTime(std::chrono::milliseconds(50));
 }

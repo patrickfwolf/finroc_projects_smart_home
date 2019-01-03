@@ -43,6 +43,11 @@
 //----------------------------------------------------------------------
 #include "projects/smart_home/vent_control/mController.h"
 
+#include "projects/smart_home/shared/mBMP180.h"
+#include "projects/smart_home/shared/mMCP3008.h"
+#include "projects/smart_home/shared/mPT.h"
+#include "projects/smart_home/shared/mMQ9.h"
+
 //----------------------------------------------------------------------
 // Namespace usage
 //----------------------------------------------------------------------
@@ -60,6 +65,13 @@ namespace vent_control
 //----------------------------------------------------------------------
 // Forward declarations / typedefs / enums
 //----------------------------------------------------------------------
+enum tMCP3008Output
+{
+	ePT100 = 0,
+	eMQ9,
+	eCOUNT
+};
+
 
 //----------------------------------------------------------------------
 // Const values
@@ -77,16 +89,42 @@ gVentControl::gVentControl(core::tFrameworkElement *parent, const std::string &n
                            const std::string &structure_config_file) :
   tGroup(parent, name, structure_config_file, true)
 {
-  auto ventilation = new mController(this, "Vent Control");
-  ventilation->si_temperature_speicher.ConnectTo(this->in_temperature_speicher);
-  ventilation->si_temperature_solar.ConnectTo(this->in_temperature_solar);
-  ventilation->si_pump_online_solar.ConnectTo(this->in_solar_online);
 
 #ifdef _LIB_WIRING_PI_PRESENT_
   auto gpio_interface = new gpio_raspberry_pi::mRaspberryIO(this, "Raspberry Pi GPIO Interface");
   gpio_interface->par_configuration_file.Set("$FINROC_PROJECT_HOME/etc/vent_control_gpio_config.xml");
   gpio_interface->Init();
-  gpio_interface->GetInputs().ConnectByName(ventilation->GetControllerOutputs(), false);
+#endif
+
+  auto bmp180 = new shared::mBMP180(this, "BMP180");
+  bmp180->out_air_pressure.ConnectTo(this->out_air_pressure_room);
+  bmp180->out_temperature.ConnectTo(this->out_bmp180_temperature_room);
+
+  auto mcp3008 = new shared::mMCP3008<tMCP3008Output::eCOUNT>(this, "MCP3008");
+  mcp3008->par_reference_voltage.Set(5.0);
+#ifdef _LIB_WIRING_PI_PRESENT_
+  mcp3008->in_voltage_raw.at(tMCP3008Output::ePT100).ConnectTo(gpio_interface->GetOutputs().GetQualifiedName() + "MCP3008 AD Voltage PT100");
+  mcp3008->in_voltage_raw.at(tMCP3008Output::eMQ9).ConnectTo(gpio_interface->GetOutputs().GetQualifiedName() + "MCP3008 AD Voltage MQ9");
+#endif
+
+  auto pt100 = new shared::mPT100(this, "PT100");
+  pt100->par_pre_resistance.Set(1000);
+  pt100->par_supply_voltage.Set(5.0);
+  pt100->par_reference_voltage.Set(5.0);
+  pt100->in_voltage.ConnectTo(mcp3008->out_voltage.at(tMCP3008Output::ePT100));
+  pt100->out_temperature.ConnectTo(this->out_pt100_temperature_room);
+
+  auto mq9 = new shared::mMQ9(this, "MQ9");
+  mq9->in_voltage.ConnectTo(mcp3008->out_voltage.at(tMCP3008Output::eMQ9));
+  mq9->out_carbon_monoxid.ConnectTo(this->out_carbon_monoxid_room);
+#ifdef _LIB_WIRING_PI_PRESENT_
+  this->out_carbon_monoxid_threshold_room.ConnectTo(gpio_interface->GetOutputs().GetQualifiedName() + "GPIO MQ9");
+#endif
+
+  auto controller = new mController(this, "Controller");
+  controller->co_ventilation.ConnectTo(this->out_ventilation);
+#ifdef _LIB_WIRING_PI_PRESENT_
+  controller->co_gpio_ventilation.ConnectTo(gpio_interface->GetInputs().GetQualifiedName() + "GPIO Ventilation");
 #endif
 
 }

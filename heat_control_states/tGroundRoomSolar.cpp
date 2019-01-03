@@ -66,7 +66,7 @@ namespace heat_control_states
     // Raumtemperatur größer Solltemperatur +0,8°C oder Speichertemperatur größer als 50°C oder Speichertemperatur niedriger als Raumtemperatur oder Speicher zu warm
     if ((temperatures.GetRoom() >= (temperatures.GetRoomSetPoint() + shared::cROOM_DIFF_SETPOINT_HIGH)) or
         (temperatures.GetBoiler() >= shared::cROOM_BOILER_MAX) or
-        (temperatures.GetBoiler() < temperatures.GetRoom() + shared::cROOM_DIFF_BOILER_LOW))
+        (temperatures.GetBoiler() < temperatures.GetRoom() - shared::cROOM_DIFF_BOILER_LOW))
     {
       state = std::unique_ptr<tState>(new tGroundSolar());
       this->SetChanged(true);

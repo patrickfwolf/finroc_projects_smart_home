@@ -89,24 +89,22 @@ class mController : public structure::tSenseControlModule
 //----------------------------------------------------------------------
 public:
 
-  tSensorInput<rrlib::si_units::tCelsius<double>> si_temperature_speicher;
-  tSensorInput<rrlib::si_units::tCelsius<double>> si_temperature_solar;
-  tSensorInput<bool> si_pump_online_solar;
+  tSensorInput<rrlib::si_units::tCelsius<double>> si_temperature_furnace;
+  tSensorInput<rrlib::si_units::tPressure<double>> si_air_pressure_room;
+  tSensorInput<rrlib::si_units::tAmountOfSubstance<double>> si_carbon_monoxid_room;
+  tSensorInput<bool> si_carbon_monoxid_warning_room;
 
-  tSensorOutput<rrlib::si_units::tTemperatureChange<double>> so_temperature_velocity;
+  tSensorOutput<bool> so_furnace_active;
 
   // manually disable venting system, if oven is heating
   tControllerInput<tVentilationMode> ci_ventilation_mode;
 
   // relais control, relais must actively enable ventilation
   tControllerOutput<bool> co_gpio_ventilation;
-  tControllerOutput<bool> co_ventilation_online;
+  tControllerOutput<bool> co_ventilation;
 
-  // maximum allowed temperature increase over a period of time
-  tParameter<rrlib::si_units::tTemperatureChange<double>> par_temperature_velocity_threshold;
+  tParameter<rrlib::si_units::tCelsius<double>> par_furnace_activity_threshold;
 
-  // maximum allowed duration to retrieve data from control
-  tParameter<rrlib::si_units::tTime<double>> par_time_delta_threshold;
 
 //----------------------------------------------------------------------
 // Public methods and typedefs
@@ -132,11 +130,7 @@ protected:
 //----------------------------------------------------------------------
 private:
 
-  rrlib::signal_processing::tDerivation<rrlib::si_units::tTemperatureChange<double>, rrlib::si_units::tCelsius<double>> derivation;
-  rrlib::si_units::tCelsius<double> current_temperature;
-  rrlib::util::tTime current_time;
-
-  virtual void OnParameterChange() override;
+  bool furnace_active_;
 
   virtual void Sense() override;
 

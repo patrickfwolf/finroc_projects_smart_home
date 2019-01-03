@@ -63,8 +63,11 @@ static runtime_construction::tStandardCreateModuleAction<mController> cCREATE_AC
 //----------------------------------------------------------------------
 mController::mController(core::tFrameworkElement *parent, const std::string &name) :
   structure::tSenseControlModule(parent, name, false),
-  par_temperature_velocity_threshold(this, "Temperature Velocity Threshold", (5.0 / 60.0)), // 5 degree per hour
-  par_time_delta_threshold(this, "Time Delta Threshold", 10)
+  ci_ventilation_mode(tVentilationMode::eONLINE),
+  co_gpio_ventilation(cVENTILATION_OFFINE),
+  co_ventilation(false),
+  par_furnace_activity_threshold(50.0),
+  furnace_active_(false)
 {
 }
 
@@ -76,98 +79,41 @@ mController::~mController()
 }
 
 //----------------------------------------------------------------------
-// mController OnParameterChange
-//----------------------------------------------------------------------
-void mController::OnParameterChange()
-{
-}
-
-//----------------------------------------------------------------------
 // mController Sense
 //----------------------------------------------------------------------
 void mController::Sense()
 {
-
-  // ventilation manually disabled
-  if (ci_ventilation_mode.Get() == tVentilationMode::eOFFLINE)
-  {
-    co_gpio_ventilation.Publish(cVENTILATION_OFFINE);
-    co_ventilation_online.Publish(false);
-  }
-  else if (ci_ventilation_mode.Get() == tVentilationMode::eONLINE)
-  {
-    co_gpio_ventilation.Publish(cVENTILATION_ONLINE);
-    co_ventilation_online.Publish(true);
-  }
-  else if (ci_ventilation_mode.Get() == tVentilationMode::eAUTOMATIC)
-  {
-    auto time = rrlib::util::tTime::Now();
-    auto time_delta = rrlib::signal_processing::utils::GetTimeDelta(current_time, time);
-
-    // check time of last date to determine failure of heating control or network connection
-    if (si_temperature_speicher.HasChanged())
-    {
-      current_temperature = si_temperature_speicher.Get();
-
-      // advance time (only if new data arrived)
-      current_time = time;
-
-      // initialize
-      if (derivation.HasTimeZero())
-      {
-        derivation.SetValue(current_temperature, time);
-      }
-
-      // determine temperature velocity every 15 minutes
-      if (derivation.DetermineTimeDelta(time) >= rrlib::si_units::tTime<double>(15 * 60))
-      {
-        derivation.Derivate(current_temperature, time);
-      }
-
-      // Publish velocity
-      so_temperature_velocity.Publish(derivation.GetValue());
-
-      // check if velocity is above threshold
-      if (derivation.GetValue() < par_temperature_velocity_threshold.Get())
-      {
-        co_gpio_ventilation.Publish(cVENTILATION_ONLINE);
-        co_ventilation_online.Publish(true);
-      }
-      else
-      {
-        // check if solar panel provides heat
-        // it is assumed that solar pump is running or solar panel is warmer than the main storage
-        if (si_pump_online_solar.Get() or si_temperature_solar.Get() > current_temperature)
-        {
-          co_gpio_ventilation.Publish(cVENTILATION_ONLINE);
-          co_ventilation_online.Publish(true);
-        }
-        else
-        {
-          // heat is not provided by solar panel
-
-          co_gpio_ventilation.Publish(cVENTILATION_OFFINE);
-          co_ventilation_online.Publish(false);
-        }
-      }
-    }
-    else
-    {
-      // determine time delta, turn ventilation off if no data arrive. This indicates network problems or a malfunction of the heating control
-      if (time_delta > par_time_delta_threshold.Get())
-      {
-        co_gpio_ventilation.Publish(cVENTILATION_OFFINE);
-        co_ventilation_online.Publish(false);
-      }
-    }
-  }
+	if(this->SensorInputChanged())
+	{
+		(si_temperature_furnace.Get() > par_furnace_activity_threshold.Get()) ? furnace_active_ = true : furnace_active_ = false;
+		so_furnace_active.Publish(furnace_active_, si_temperature_furnace.GetTimestamp());
+	}
 }
 
 //----------------------------------------------------------------------
 // mController Control
 //----------------------------------------------------------------------
 void mController::Control()
-{}
+{
+	if(this->ControllerInputChanged() or ci_ventilation_mode.Get() == tVentilationMode::eAUTOMATIC)
+	{
+	  // ventilation manually disabled
+	  if (ci_ventilation_mode.Get() == tVentilationMode::eOFFLINE)
+	  {
+	    co_gpio_ventilation.Publish(cVENTILATION_OFFINE);
+	    co_ventilation.Publish(false);
+	  }
+	  else if (ci_ventilation_mode.Get() == tVentilationMode::eONLINE)
+	  {
+	    co_gpio_ventilation.Publish(cVENTILATION_ONLINE);
+	    co_ventilation.Publish(true);
+	  }
+	  else if (ci_ventilation_mode.Get() == tVentilationMode::eAUTOMATIC)
+	  {
+		  // TODO: implement
+	  }
+	}
+}
 
 //----------------------------------------------------------------------
 // End of namespace declaration

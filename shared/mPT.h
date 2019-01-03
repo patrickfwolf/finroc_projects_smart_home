@@ -19,34 +19,33 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 //----------------------------------------------------------------------
-/*!\file    projects/smart_home/vent/gVentControl.h
+/*!\file    projects/smart_home/heat_control/mPT.h
  *
  * \author  Patrick Wolf
  *
- * \date    2015-03-11
+ * \date    2015-03-12
  *
- * \brief Contains gVentControl
+ * \brief Contains mPT
  *
- * \b gVentControl
+ * \b mPT
  *
- * Control group for the raspberry pi heating contol.
+ * module that provides a hardware interface, a/d conversion and is capable of setting pumps.
  *
  */
 //----------------------------------------------------------------------
-#ifndef __projects__smart_home__vent_control__gVentControl_h__
-#define __projects__smart_home__vent_control__gVentControl_h__
+#ifndef __projects__smart_home__shared__mPT_h__
+#define __projects__smart_home__shared__mPT_h__
 
-#include "plugins/structure/tGroup.h"
+#include "plugins/structure/tModule.h"
 
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
 //----------------------------------------------------------------------
-#include "rrlib/si_units/si_units.h"
-
 
 //----------------------------------------------------------------------
 // Internal includes with ""
 //----------------------------------------------------------------------
+#include "projects/smart_home/shared/tPT.h"
 
 //----------------------------------------------------------------------
 // Namespace declaration
@@ -55,7 +54,7 @@ namespace finroc
 {
 namespace smart_home
 {
-namespace vent_control
+namespace shared
 {
 
 //----------------------------------------------------------------------
@@ -67,9 +66,10 @@ namespace vent_control
 //----------------------------------------------------------------------
 //! SHORT_DESCRIPTION
 /*!
- * Control group for the raspberry pi heating contol.
+ * module that provides a hardware interface, a/d conversion and is capable of setting pumps.
  */
-class gVentControl : public structure::tGroup
+template<size_t TResistance>
+class mPT: public structure::tModule
 {
 
 //----------------------------------------------------------------------
@@ -77,22 +77,26 @@ class gVentControl : public structure::tGroup
 //----------------------------------------------------------------------
 public:
 
-  tInput<rrlib::si_units::tCelsius<double>> in_temperature_furnace;
+  tInput<rrlib::si_units::tVoltage<double>> in_voltage;
 
-  tOutput<bool> out_ventilation;
-  tOutput<rrlib::si_units::tCelsius<double>> out_pt100_temperature_room;
-  tOutput<rrlib::si_units::tCelsius<double>> out_bmp180_temperature_room;
-  tOutput<rrlib::si_units::tPressure<double>> out_air_pressure_room;
-  tOutput<rrlib::si_units::tAmountOfSubstance<double>> out_carbon_monoxid_room;
-  tOutput<bool> out_carbon_monoxid_threshold_room;
+  tOutput<rrlib::si_units::tCelsius<double>> out_temperature;
+  tOutput<rrlib::si_units::tElectricResistance<double>> out_resistance;
+
+  tParameter<rrlib::si_units::tElectricResistance<double>> par_pre_resistance;
+  tParameter<rrlib::si_units::tVoltage<double>> par_reference_voltage;
+  tParameter<rrlib::si_units::tVoltage<double>> par_supply_voltage;
 
 //----------------------------------------------------------------------
 // Public methods and typedefs
 //----------------------------------------------------------------------
 public:
 
-  gVentControl(core::tFrameworkElement *parent, const std::string &name = "VentControl",
-               const std::string &structure_config_file = __FILE__".xml");
+  mPT(core::tFrameworkElement *parent, const std::string &name = "PT") :
+    tModule(parent, name),
+	par_pre_resistance(2000.0),
+	par_reference_voltage(5.0),
+	par_supply_voltage(5.0)
+  {}
 
 //----------------------------------------------------------------------
 // Protected methods
@@ -101,17 +105,62 @@ protected:
 
   /*! Destructor
    *
-   * The destructor of groups is declared protected to avoid accidental deletion. Deleting
-   * groups is already handled by the framework.
+   * The destructor of modules is declared protected to avoid accidental deletion. Deleting
+   * modules is already handled by the framework.
    */
-  ~gVentControl();
+  ~mPT() {}
 
 //----------------------------------------------------------------------
 // Private fields and methods
 //----------------------------------------------------------------------
 private:
 
+  inline virtual void Update() override
+  {
+	  if(this->InputChanged())
+	  {
+    auto resistance = GetResistance(in_voltage.Get(), par_reference_voltage.Get(), par_pre_resistance.Get());
+
+    out_resistance.Publish(resistance, in_voltage.GetTimestamp());
+    out_temperature.Publish(pt_.GetTemperature(resistance), in_voltage.GetTimestamp());
+  }
+  }
+
+  /*!
+   * Determines resistance value of PT sensor
+   * @param voltage A/D voltage
+   * @param reference_voltage reference voltage of A/D converter
+   * @param pre_resistance pre resistance of PT sensor
+   * @return resistance
+   */
+  inline rrlib::si_units::tElectricResistance<double> GetResistance(
+    const rrlib::si_units::tVoltage<double> & voltage,
+    const rrlib::si_units::tVoltage<double> & reference_voltage,
+    const rrlib::si_units::tElectricResistance<double> & pre_resistance) const
+  {
+    /*
+     * _____ V_ref
+     *   |
+     *  [ ] PT
+     *   |____ ADC V
+     *   |
+     *  [ ] R
+     * __|__ GND
+     *
+     * V_supply / V_ref = R_pre + R_pt / R_pre
+     *
+     */
+
+    return pre_resistance * ((reference_voltage / voltage).Value() - 1.0);
+  }
+
+  shared::tPT<TResistance> pt_;
+
 };
+
+using mPT1000 = mPT<1000>;
+using mPT500 = mPT<500>;
+using mPT100 = mPT<100>;
 
 //----------------------------------------------------------------------
 // End of namespace declaration
@@ -119,6 +168,5 @@ private:
 }
 }
 }
-
 
 #endif

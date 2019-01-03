@@ -19,33 +19,31 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 //----------------------------------------------------------------------
-/*!\file    projects/smart_home/vent/gVentControl.h
+/*!\file    projects/raspberry_pi_heating_control/control/mPumpInterface.cpp
  *
  * \author  Patrick Wolf
  *
- * \date    2015-03-11
- *
- * \brief Contains gVentControl
- *
- * \b gVentControl
- *
- * Control group for the raspberry pi heating contol.
+ * \date    2015-03-12
  *
  */
 //----------------------------------------------------------------------
-#ifndef __projects__smart_home__vent_control__gVentControl_h__
-#define __projects__smart_home__vent_control__gVentControl_h__
-
-#include "plugins/structure/tGroup.h"
+#include "projects/smart_home/heat_control/mPumpInterface.h"
 
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
 //----------------------------------------------------------------------
-#include "rrlib/si_units/si_units.h"
-
 
 //----------------------------------------------------------------------
 // Internal includes with ""
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// Debugging
+//----------------------------------------------------------------------
+#include <cassert>
+
+//----------------------------------------------------------------------
+// Namespace usage
 //----------------------------------------------------------------------
 
 //----------------------------------------------------------------------
@@ -55,7 +53,7 @@ namespace finroc
 {
 namespace smart_home
 {
-namespace vent_control
+namespace heat_control
 {
 
 //----------------------------------------------------------------------
@@ -63,55 +61,60 @@ namespace vent_control
 //----------------------------------------------------------------------
 
 //----------------------------------------------------------------------
-// Class declaration
+// Const values
 //----------------------------------------------------------------------
-//! SHORT_DESCRIPTION
-/*!
- * Control group for the raspberry pi heating contol.
- */
-class gVentControl : public structure::tGroup
+static runtime_construction::tStandardCreateModuleAction<mPumpInterface> cCREATE_ACTION_FOR_M_PUMPINTERFACE("PumpInterface");
+
+//----------------------------------------------------------------------
+// Implementation
+//----------------------------------------------------------------------
+
+//----------------------------------------------------------------------
+// mPumpInterface constructor
+//----------------------------------------------------------------------
+mPumpInterface::mPumpInterface(core::tFrameworkElement *parent, const std::string &name) :
+  tModule(parent, name, false), // change to 'true' to make module's ports shared (so that ports in other processes can connect to its sensor outputs and controller inputs)
+  in_pump_online_solar(false),
+  in_pump_online_room(false),
+  in_pump_online_ground(false),
+  out_gpio_pump_online_solar(true),
+  out_gpio_pump_online_room(true),
+  out_gpio_pump_online_ground(true),
+  out_gpio_pump_led_online_solar(false),
+  out_gpio_pump_led_online_room(false),
+  out_gpio_pump_led_online_ground(false)
+{}
+
+//----------------------------------------------------------------------
+// mPumpInterface destructor
+//----------------------------------------------------------------------
+mPumpInterface::~mPumpInterface()
+{}
+
+//----------------------------------------------------------------------
+// mPumpInterface Control
+//----------------------------------------------------------------------
+void mPumpInterface::Update()
 {
-
-//----------------------------------------------------------------------
-// Ports (These are the only variables that may be declared public)
-//----------------------------------------------------------------------
-public:
-
-  tInput<rrlib::si_units::tCelsius<double>> in_temperature_furnace;
-
-  tOutput<bool> out_ventilation;
-  tOutput<rrlib::si_units::tCelsius<double>> out_pt100_temperature_room;
-  tOutput<rrlib::si_units::tCelsius<double>> out_bmp180_temperature_room;
-  tOutput<rrlib::si_units::tPressure<double>> out_air_pressure_room;
-  tOutput<rrlib::si_units::tAmountOfSubstance<double>> out_carbon_monoxid_room;
-  tOutput<bool> out_carbon_monoxid_threshold_room;
-
-//----------------------------------------------------------------------
-// Public methods and typedefs
-//----------------------------------------------------------------------
-public:
-
-  gVentControl(core::tFrameworkElement *parent, const std::string &name = "VentControl",
-               const std::string &structure_config_file = __FILE__".xml");
-
-//----------------------------------------------------------------------
-// Protected methods
-//----------------------------------------------------------------------
-protected:
-
-  /*! Destructor
-   *
-   * The destructor of groups is declared protected to avoid accidental deletion. Deleting
-   * groups is already handled by the framework.
-   */
-  ~gVentControl();
-
-//----------------------------------------------------------------------
-// Private fields and methods
-//----------------------------------------------------------------------
-private:
-
-};
+  if (this->InputChanged())
+  {
+    if (in_pump_online_solar.HasChanged())
+    {
+      out_gpio_pump_online_solar.Publish(not in_pump_online_solar.Get());
+      out_gpio_pump_led_online_solar.Publish(in_pump_online_solar.Get());
+    }
+    if (in_pump_online_ground.HasChanged())
+    {
+      out_gpio_pump_online_ground.Publish(not in_pump_online_ground.Get());
+      out_gpio_pump_led_online_ground.Publish(in_pump_online_ground.Get());
+    }
+    if (in_pump_online_room.HasChanged())
+    {
+      out_gpio_pump_online_room.Publish(not in_pump_online_room.Get());
+      out_gpio_pump_led_online_room.Publish(in_pump_online_room.Get());
+    }
+  }
+}
 
 //----------------------------------------------------------------------
 // End of namespace declaration
@@ -119,6 +122,3 @@ private:
 }
 }
 }
-
-
-#endif

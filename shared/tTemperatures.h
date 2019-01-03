@@ -92,24 +92,24 @@ class tTemperatures
 //----------------------------------------------------------------------
 public:
 
-	/*!
-	 * Constructor
-	 * @param boiler Temperature of heat storage buffer
-	 * @param room Temperature of living area
-	 * @param solar Temperature of solar panel
-	 * @param ground Temperature below house within concrete heat shield
-	 * @param room_set_point Set point temperature of living area
-	 */
+  /*!
+   * Constructor
+   * @param boiler Temperature of heat storage buffer
+   * @param room Temperature of living area
+   * @param solar Temperature of solar panel
+   * @param ground Temperature below house within concrete heat shield
+   * @param room_set_point Set point temperature of living area
+   */
   tTemperatures(const rrlib::si_units::tCelsius<double> & boiler,
                 const rrlib::si_units::tCelsius<double> & room,
                 const rrlib::si_units::tCelsius<double> & solar,
                 const rrlib::si_units::tCelsius<double> & ground,
                 const rrlib::si_units::tCelsius<double> & room_set_point):
-                       boiler_(boiler),
-                       room_(room),
-                       solar_(solar),
-                       ground_(ground),
-                       room_set_point_(room_set_point)
+    boiler_(boiler),
+    room_(room),
+    solar_(solar),
+    ground_(ground),
+    room_set_point_(room_set_point)
   {}
 
   /*!

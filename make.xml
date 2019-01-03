@@ -2,7 +2,7 @@
   <library name="control">
     <sources>
       heat_control/mController.cpp
-      heat_control/mHardwareAbstraction.cpp
+      heat_control/mPumpInterface.cpp
       vent_control/mController.cpp
       user_interface/mLED.cpp
     </sources>
@@ -10,13 +10,21 @@
   
   <library name="shared">
     <sources>
-      shared/tMCP3008Converter.h
+      shared/mMCP3008.h
+      shared/mPT.h
+      shared/mMQ9.h
+      shared/tMCP3008.h
       shared/tPT.h
-      shared/pt1000_lookup.h
       shared/tPumps.h
       shared/tTemperatures.h
     </sources>
   </library> 
+  
+  <library name="shared_wiring_pi" optionallibs="wiringPi">
+    <sources>
+      shared/mBMP180.h
+    </sources>
+  </library>
   
   <library name="heat_control_states">
     <sources>

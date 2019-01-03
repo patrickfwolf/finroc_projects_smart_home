@@ -19,30 +19,32 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 //----------------------------------------------------------------------
-/*!\file    projects/smart_home/vent/gVentControl.h
+/*!\file    projects/smart_home/heat_control/mBMP180.h
  *
  * \author  Patrick Wolf
  *
- * \date    2015-03-11
+ * \date    2015-03-12
  *
- * \brief Contains gVentControl
+ * \brief Contains mBMP180
  *
- * \b gVentControl
+ * \b mBMP180
  *
- * Control group for the raspberry pi heating contol.
- *
+ * MBP180 air pressure and temperature sensor via I2C
  */
 //----------------------------------------------------------------------
-#ifndef __projects__smart_home__vent_control__gVentControl_h__
-#define __projects__smart_home__vent_control__gVentControl_h__
+#ifndef __projects__smart_home__shared__mBMP180_h__
+#define __projects__smart_home__shared__mBMP180_h__
 
-#include "plugins/structure/tGroup.h"
+#include "plugins/structure/tModule.h"
 
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
 //----------------------------------------------------------------------
-#include "rrlib/si_units/si_units.h"
+#ifdef _LIB_WIRING_PI_PRESENT_
+#include <wiringPiI2C.h>
+#endif
 
+#include "rrlib/si_units/si_units.h"
 
 //----------------------------------------------------------------------
 // Internal includes with ""
@@ -55,21 +57,39 @@ namespace finroc
 {
 namespace smart_home
 {
-namespace vent_control
+namespace shared
 {
 
 //----------------------------------------------------------------------
 // Forward declarations / typedefs / enums
 //----------------------------------------------------------------------
+enum tBMP180OSSMode
+{
+	tBMP180_OSS_ULTRA_LOW_POWER= 0x00,
+	tBMP180_OSS_STANDARD = 0x01,
+	tBMP180_OSS_HIGH_RESOLUTION = 0x02,
+	tBMP180_OSS_ULTRA_HIGH_RESOLUTION = 0x03
+};
+
+static constexpr unsigned short cBMP180_I2C_ADDRESS = 0x77;
+static constexpr unsigned short cBMP180_ID = 0xD0;
+static constexpr unsigned short cBMP180_CTRL_MEAS = 0xF4;
+static constexpr unsigned short cBMP180_OUT_MSB = 0xF6;
+static constexpr unsigned short cBMP180_OUT_LSB = 0xF7;
+static constexpr unsigned short cBMP180_OUT_XLSB = 0xF8;
+static constexpr unsigned short cBMP180_SOFT_RESET = 0xE0;
+
+static constexpr unsigned short cBMP180_REGISTER_TEMPERATURE = 0x2E;
+static constexpr unsigned short cBMP180_REGISTER_AIR_PRESSURE = 0x34;
 
 //----------------------------------------------------------------------
 // Class declaration
 //----------------------------------------------------------------------
 //! SHORT_DESCRIPTION
 /*!
- * Control group for the raspberry pi heating contol.
+ * module that provides a hardware interface, a/d conversion and is capable of setting pumps.
  */
-class gVentControl : public structure::tGroup
+class mBMP180: public structure::tModule
 {
 
 //----------------------------------------------------------------------
@@ -77,22 +97,37 @@ class gVentControl : public structure::tGroup
 //----------------------------------------------------------------------
 public:
 
-  tInput<rrlib::si_units::tCelsius<double>> in_temperature_furnace;
+  tOutput<rrlib::si_units::tCelsius<double>> out_temperature;
+  tOutput<rrlib::si_units::tPressure<double>> out_air_pressure;
 
-  tOutput<bool> out_ventilation;
-  tOutput<rrlib::si_units::tCelsius<double>> out_pt100_temperature_room;
-  tOutput<rrlib::si_units::tCelsius<double>> out_bmp180_temperature_room;
-  tOutput<rrlib::si_units::tPressure<double>> out_air_pressure_room;
-  tOutput<rrlib::si_units::tAmountOfSubstance<double>> out_carbon_monoxid_room;
-  tOutput<bool> out_carbon_monoxid_threshold_room;
+  tParameter<tBMP180OSSMode> par_operation_mode;
 
 //----------------------------------------------------------------------
 // Public methods and typedefs
 //----------------------------------------------------------------------
 public:
 
-  gVentControl(core::tFrameworkElement *parent, const std::string &name = "VentControl",
-               const std::string &structure_config_file = __FILE__".xml");
+  mBMP180(core::tFrameworkElement *parent, const std::string &name = "PT") :
+    tModule(parent, name),
+	par_operation_mode(tBMP180OSSMode::tBMP180_OSS_STANDARD),
+	i2c_setup_success_(false)
+  {
+#ifdef _LIB_WIRING_PI_PRESENT_
+	  i2c_setup_success_ = wiringPiI2CSetup(cBMP180_I2C_ADDRESS);
+#endif
+	  if(not i2c_setup_success_)
+	  {
+		  RRLIB_LOG_PRINT(ERROR, "I2C setup of BMP180 failed");
+	  }
+#ifdef _LIB_WIRING_PI_PRESENT_
+	  else
+	  {
+		  wiringPiI2CWrite (cBMP180_I2C_ADDRESS, cBMP180_ID);
+		  auto id = wiringPiI2CRead (cBMP180_I2C_ADDRESS);
+		  RRLIB_LOG_PRINT(DEBUG, "Found device with ID: ", id, " at I2C address ", cBMP180_I2C_ADDRESS, ".");
+	  }
+#endif
+  }
 
 //----------------------------------------------------------------------
 // Protected methods
@@ -101,16 +136,33 @@ protected:
 
   /*! Destructor
    *
-   * The destructor of groups is declared protected to avoid accidental deletion. Deleting
-   * groups is already handled by the framework.
+   * The destructor of modules is declared protected to avoid accidental deletion. Deleting
+   * modules is already handled by the framework.
    */
-  ~gVentControl();
+  ~mBMP180() {}
 
 //----------------------------------------------------------------------
 // Private fields and methods
 //----------------------------------------------------------------------
 private:
 
+  bool i2c_setup_success_;
+
+  inline virtual void Update() override
+  {
+#ifdef _LIB_WIRING_PI_PRESENT_
+	  auto time = rrlib::time::Now();
+
+	  if(i2c_setup_success_)
+	  {
+		  int temperature = wiringPiI2CRead(cBMP180_REGISTER_TEMPERATURE);
+		  out_temperature.Publish(static_cast<rrlib::si_units::tCelsius<double>>(temperature) * 0.1, time);
+
+		  int air_pressure = wiringPiI2CRead(cBMP180_REGISTER_AIR_PRESSURE + (par_operation_mode.Get() << 6));
+		  out_air_pressure.Publish(static_cast<rrlib::si_units::tPressure<double>>(air_pressure), time);
+	  }
+#endif
+  }
 };
 
 //----------------------------------------------------------------------
@@ -119,6 +171,5 @@ private:
 }
 }
 }
-
 
 #endif

@@ -19,28 +19,27 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 //----------------------------------------------------------------------
-/*!\file    projects/smart_home/heat_control/tMCP3008Converter.h
+/*!\file    projects/smart_home/heat_control/mMQ9.h
  *
  * \author  Patrick Wolf
  *
- * \date    2015-05-07
+ * \date    2015-03-12
  *
- * \brief   Contains tMCP3008Converter.h
+ * \brief Contains mMQ9
  *
- * \b tMCP3008Converter.h
+ * \b mMQ9
  *
- * Converter for MCP3008 output.
- *
+ * MQ gas sensor module
  */
 //----------------------------------------------------------------------
-#ifndef __projects__smart_home__heat_control__tMCP3008Converter_h__
-#define __projects__smart_home__heat_control__tMCP3008Converter_h__
+#ifndef __projects__smart_home__shared__mMQ9_h__
+#define __projects__smart_home__shared__mMQ9_h__
+
+#include "plugins/structure/tModule.h"
 
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
 //----------------------------------------------------------------------
-#include "rrlib/si_units/si_units.h"
-
 
 //----------------------------------------------------------------------
 // Internal includes with ""
@@ -59,79 +58,58 @@ namespace shared
 //----------------------------------------------------------------------
 // Forward declarations / typedefs / enums
 //----------------------------------------------------------------------
-static const unsigned short cMCP3008_RESOLUTION = 1024;
 
 //----------------------------------------------------------------------
 // Class declaration
 //----------------------------------------------------------------------
 //! SHORT_DESCRIPTION
 /*!
- * Converter for MCP3008 output.
+ * module that provides a hardware interface, a/d conversion and is capable of setting pumps.
  */
-class tMCP3008Converter
+class mMQ9: public structure::tModule
 {
+
+//----------------------------------------------------------------------
+// Ports (These are the only variables that may be declared public)
+//----------------------------------------------------------------------
+public:
+
+  tInput<rrlib::si_units::tVoltage<double>> in_voltage;
+
+  tOutput<rrlib::si_units::tAmountOfSubstance<double>> out_carbon_monoxid;
+
+  tParameter<rrlib::si_units::tVoltage<double>> par_supply_voltage;
 
 //----------------------------------------------------------------------
 // Public methods and typedefs
 //----------------------------------------------------------------------
 public:
 
-  /*!
-   * Constructor
-   * @param reference_voltage reference voltage for MCP3008
-   */
-  tMCP3008Converter(const rrlib::si_units::tVoltage<double> & reference_voltage):
-    reference_voltage_(reference_voltage)
+  mMQ9(core::tFrameworkElement *parent, const std::string &name = "MQ9") :
+    tModule(parent, name),
+	par_supply_voltage(5.0)
   {}
 
-  /*!
-   * Destructor
-   */
-  ~tMCP3008Converter()
-  {}
+//----------------------------------------------------------------------
+// Protected methods
+//----------------------------------------------------------------------
+protected:
 
-  /*!
-   * Sets the reference voltage of MCP3008
-   * @param reference_voltage reference voltage
+  /*! Destructor
+   *
+   * The destructor of modules is declared protected to avoid accidental deletion. Deleting
+   * modules is already handled by the framework.
    */
-  inline void SetReferenceVoltage(const rrlib::si_units::tVoltage<double> & reference_voltage)
-  {
-    reference_voltage_ = reference_voltage;
-  }
-
-  /*!
-   * Getter for reference voltage
-   * @return reference voltage of MCP3008
-   */
-  inline rrlib::si_units::tVoltage<double> GetReferenceVoltage() const
-  {
-    return reference_voltage_;
-  }
-
-  /*!
-   * Converts the value of the MCP3008 output to a voltage
-   * @param ad_value value of MCP3008 output
-   * @return voltage
-   */
-  inline rrlib::si_units::tVoltage<double> ConvertADValueToVoltage(unsigned short ad_value) const
-  {
-    // mcp3008 is 10 bit converter
-    if (ad_value + 1 > cMCP3008_RESOLUTION)
-    {
-      RRLIB_LOG_PRINT(ERROR, "MCP3008 output larger than 10bit. Output has ", std::ceil(std::log10(static_cast<double>(ad_value + 1)) / std::log10(2.0)), " bit.");
-      return reference_voltage_;
-    }
-    double ratio = static_cast<double>(ad_value) / static_cast<double>(cMCP3008_RESOLUTION - 1);
-    return reference_voltage_ * ratio;
-  }
+  ~mMQ9() {}
 
 //----------------------------------------------------------------------
 // Private fields and methods
 //----------------------------------------------------------------------
 private:
 
-  rrlib::si_units::tVoltage<double> reference_voltage_;
-
+  inline virtual void Update() override
+  {
+  }
 };
 
 //----------------------------------------------------------------------
@@ -140,6 +118,5 @@ private:
 }
 }
 }
-
 
 #endif
