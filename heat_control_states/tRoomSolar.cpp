@@ -58,37 +58,37 @@ namespace heat_control_states
 // Class declaration
 //----------------------------------------------------------------------
 void tRoomSolar::ComputeControlState(std::unique_ptr<tState> & state, const shared::tTemperatures &temperatures)
+{
+  // Raumtemperatur größer Solltemperatur oder Speichertemperatur größer als 50°C oder Speichertemperatur niedriger als Raumtemperatur
+  if ((temperatures.GetRoom() >= (temperatures.GetRoomSetPoint() + shared::cROOM_DIFF_BOILER_HIGH)) or
+      (temperatures.GetBoiler() >= shared::cROOM_DIFF_BOILER_LOW) or
+      (temperatures.GetBoiler() < temperatures.GetRoom() + shared::cROOM_DIFF_BOILER_LOW))
   {
-    // Raumtemperatur größer Solltemperatur oder Speichertemperatur größer als 50°C oder Speichertemperatur niedriger als Raumtemperatur
-    if ((temperatures.GetRoom() >= (temperatures.GetRoomSetPoint() + shared::cROOM_DIFF_BOILER_HIGH)) or
-        (temperatures.GetBoiler() >= shared::cROOM_DIFF_BOILER_LOW) or
-        (temperatures.GetBoiler() < temperatures.GetRoom() + shared::cROOM_DIFF_BOILER_LOW))
-    {
-      state = std::unique_ptr<tState>(new tSolar());
-      this->SetChanged(true);
-      return;
-    }
-
-    // Solartemperatur weniger als 2°C größer als Speichertemperatur
-    if (temperatures.GetSolar() - temperatures.GetBoiler() < shared::cSOLAR_DIFF_BOILER_LOW)
-    {
-      state = std::unique_ptr<tState>(new tRoom());
-      this->SetChanged(true);
-      return;
-    }
-
-    // Speichertemperatur höher als Bodenplattentemperatur und Speichertemperatur größer 45°C
-    if ((temperatures.GetBoiler() > shared::cGROUND_BOILER_MIN) and
-        (temperatures.GetBoiler() > temperatures.GetGround() + shared::cGROUND_DIFF_BOILER_HIGH))
-    {
-      state = std::unique_ptr<tState>(new tGroundRoomSolar());
-      this->SetChanged(true);
-      return;
-    }
-
-    // no change
-    this->SetChanged(false);
+    state = std::unique_ptr<tState>(new tSolar());
+    this->SetChanged(true);
+    return;
   }
+
+  // Solartemperatur weniger als 2°C größer als Speichertemperatur
+  if (temperatures.GetSolar() - temperatures.GetBoiler() < shared::cSOLAR_DIFF_BOILER_LOW)
+  {
+    state = std::unique_ptr<tState>(new tRoom());
+    this->SetChanged(true);
+    return;
+  }
+
+  // Speichertemperatur höher als Bodenplattentemperatur und Speichertemperatur größer 45°C
+  if ((temperatures.GetBoiler() > shared::cGROUND_BOILER_MIN) and
+      (temperatures.GetBoiler() > temperatures.GetGround() + shared::cGROUND_DIFF_BOILER_HIGH))
+  {
+    state = std::unique_ptr<tState>(new tGroundRoomSolar());
+    this->SetChanged(true);
+    return;
+  }
+
+  // no change
+  this->SetChanged(false);
+}
 
 //----------------------------------------------------------------------
 // End of namespace declaration

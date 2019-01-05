@@ -95,8 +95,8 @@ public:
   {
     for (std::size_t i = 0; i < Tchannels; i++)
     {
-      in_voltage_raw.emplace_back(tInput<unsigned short>(this, "Voltage Raw " + std::to_string(i)));
-      out_voltage.emplace_back(tOutput<rrlib::si_units::tVoltage<double>>(this, "Voltage " + std::to_string(i)));
+      in_voltage_raw.emplace_back(tInput<unsigned short>("Voltage Raw " + std::to_string(i), this));
+      out_voltage.emplace_back(tOutput<rrlib::si_units::tVoltage<double>>("Voltage " + std::to_string(i), this));
     }
   }
 
@@ -124,13 +124,13 @@ private:
 
   inline virtual void Update() override
   {
-	  if(this->InputChanged())
-	  {
-    for (std::size_t i = 0; i < Tchannels; i++)
+    if (this->InputChanged())
     {
-      out_voltage.at(i).Publish(mcp3008_.ConvertADValueToVoltage(in_voltage_raw.at(i).Get()), in_voltage_raw.at(i).GetTimestamp());
+      for (std::size_t i = 0; i < Tchannels; i++)
+      {
+        out_voltage.at(i).Publish(mcp3008_.ConvertADValueToVoltage(in_voltage_raw.at(i).Get()), in_voltage_raw.at(i).GetTimestamp());
+      }
     }
-	  }
   }
 
   shared::tMCP3008 mcp3008_;

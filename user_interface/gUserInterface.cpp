@@ -84,7 +84,7 @@ gUserInterface::gUserInterface(core::tFrameworkElement *parent, const std::strin
   led->in_green.ConnectTo(this->in_led_green);
 
 #ifdef _LIB_WIRING_PI_PRESENT_
-  auto gpio_interface = new gpio_raspberry_pi::mRaspberryIO(this, "Raspberry Pi GPIO Interface");
+  auto gpio_interface = new gpio_raspberry_pi::mRaspberryIO(this, "Raspberry Pi GPIO Interface", false);
   gpio_interface->par_configuration_file.Set("$FINROC_PROJECT_HOME/etc/user_interface_gpio_config.xml");
   gpio_interface->Init();
   gpio_interface->GetInputs().ConnectByName(led->GetOutputs(), false);

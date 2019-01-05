@@ -54,38 +54,38 @@ namespace heat_control_states
 // Forward declarations / typedefs / enums
 //----------------------------------------------------------------------
 void tSolar::ComputeControlState(std::unique_ptr<tState> & state, const shared::tTemperatures & temperatures)
+{
+
+  // Solar less than boiler offset
+  if (temperatures.GetSolar() - temperatures.GetBoiler() < shared::cSOLAR_DIFF_BOILER_LOW)
   {
-
-    // Solar less than boiler offset
-    if (temperatures.GetSolar() - temperatures.GetBoiler() < shared::cSOLAR_DIFF_BOILER_LOW)
-    {
-      state = std::unique_ptr<tState>(new tReady());
-      this->SetChanged(true);
-      return;
-    }
-
-    // Room under set-point and boiler under high threshold temperature and boiler temperature higher than room
-    if ((temperatures.GetRoom() < (temperatures.GetRoomSetPoint() - shared::cROOM_DIFF_SETPOINT_LOW)) and
-        (temperatures.GetBoiler() < shared::cROOM_BOILER_MAX) and
-        (temperatures.GetBoiler() > temperatures.GetRoom() + shared::cROOM_DIFF_BOILER_HIGH))
-    {
-      state = std::unique_ptr<tState>(new tRoomSolar());
-      this->SetChanged(true);
-      return;
-    }
-
-    // Boiler higher than ground temperature and boiler warmer than minimum temperature
-    if ((temperatures.GetBoiler() > temperatures.GetGround() + shared::cGROUND_DIFF_BOILER_HIGH) and
-        (temperatures.GetBoiler() > shared::cGROUND_BOILER_MIN))
-    {
-      state = std::unique_ptr<tState>(new tGroundSolar());
-      this->SetChanged(true);
-      return;
-    }
-
-    // No change
-    this->SetChanged(false);
+    state = std::unique_ptr<tState>(new tReady());
+    this->SetChanged(true);
+    return;
   }
+
+  // Room under set-point and boiler under high threshold temperature and boiler temperature higher than room
+  if ((temperatures.GetRoom() < (temperatures.GetRoomSetPoint() - shared::cROOM_DIFF_SETPOINT_LOW)) and
+      (temperatures.GetBoiler() < shared::cROOM_BOILER_MAX) and
+      (temperatures.GetBoiler() > temperatures.GetRoom() + shared::cROOM_DIFF_BOILER_HIGH))
+  {
+    state = std::unique_ptr<tState>(new tRoomSolar());
+    this->SetChanged(true);
+    return;
+  }
+
+  // Boiler higher than ground temperature and boiler warmer than minimum temperature
+  if ((temperatures.GetBoiler() > temperatures.GetGround() + shared::cGROUND_DIFF_BOILER_HIGH) and
+      (temperatures.GetBoiler() > shared::cGROUND_BOILER_MIN))
+  {
+    state = std::unique_ptr<tState>(new tGroundSolar());
+    this->SetChanged(true);
+    return;
+  }
+
+  // No change
+  this->SetChanged(false);
+}
 
 //----------------------------------------------------------------------
 // End of namespace declaration

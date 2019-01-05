@@ -126,8 +126,8 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   auto gpio_interface = new finroc::gpio_raspberry_pi::mRaspberryIO(this, "Raspberry Pi GPIO Interface");
   gpio_interface->par_configuration_file.Set("$FINROC_PROJECT_HOME/etc/heat_control_gpio_config.xml");
   gpio_interface->Init();
-  gpio_interface->GetInputs().ConnectByName(hardware_interface->GetControllerOutputs(), true);
-  gpio_interface->GetOutputs().ConnectByName(hardware_interface->GetSensorInputs(), true);
+  gpio_interface->GetInputs().ConnectByName(pump_interface->GetOutputs(), true);
+  gpio_interface->GetOutputs().ConnectByName(pump_interface->GetInputs(), true);
 #endif
 
   auto mcp_3008 = new shared::mMCP3008<tMCP3008Output::eCOUNT>(this, "MCP3008");

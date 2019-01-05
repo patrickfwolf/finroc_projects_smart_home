@@ -93,9 +93,9 @@ public:
 
   mPT(core::tFrameworkElement *parent, const std::string &name = "PT") :
     tModule(parent, name),
-	par_pre_resistance(2000.0),
-	par_reference_voltage(5.0),
-	par_supply_voltage(5.0)
+    par_pre_resistance(2000.0),
+    par_reference_voltage(5.0),
+    par_supply_voltage(5.0)
   {}
 
 //----------------------------------------------------------------------
@@ -117,13 +117,13 @@ private:
 
   inline virtual void Update() override
   {
-	  if(this->InputChanged())
-	  {
-    auto resistance = GetResistance(in_voltage.Get(), par_reference_voltage.Get(), par_pre_resistance.Get());
+    if (this->InputChanged())
+    {
+      auto resistance = GetResistance(in_voltage.Get(), par_reference_voltage.Get(), par_pre_resistance.Get());
 
-    out_resistance.Publish(resistance, in_voltage.GetTimestamp());
-    out_temperature.Publish(pt_.GetTemperature(resistance), in_voltage.GetTimestamp());
-  }
+      out_resistance.Publish(resistance, in_voltage.GetTimestamp());
+      out_temperature.Publish(pt_.GetTemperature(resistance), in_voltage.GetTimestamp());
+    }
   }
 
   /*!
@@ -150,6 +150,10 @@ private:
      * V_supply / V_ref = R_pre + R_pt / R_pre
      *
      */
+	if(voltage.Value() == 0)
+	{
+	  return pre_resistance;
+	}
 
     return pre_resistance * ((reference_voltage / voltage).Value() - 1.0);
   }

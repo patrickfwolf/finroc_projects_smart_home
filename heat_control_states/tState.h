@@ -86,8 +86,8 @@ public:
    * @param current_state state
    */
   tState(const tCurrentState & current_state):
-      state_has_changed_(false),
-      current_state_(current_state)
+    state_has_changed_(false),
+    current_state_(current_state)
   {}
 
   /*!

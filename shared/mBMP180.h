@@ -65,10 +65,10 @@ namespace shared
 //----------------------------------------------------------------------
 enum tBMP180OSSMode
 {
-	tBMP180_OSS_ULTRA_LOW_POWER= 0x00,
-	tBMP180_OSS_STANDARD = 0x01,
-	tBMP180_OSS_HIGH_RESOLUTION = 0x02,
-	tBMP180_OSS_ULTRA_HIGH_RESOLUTION = 0x03
+  tBMP180_OSS_ULTRA_LOW_POWER = 0x00,
+  tBMP180_OSS_STANDARD = 0x01,
+  tBMP180_OSS_HIGH_RESOLUTION = 0x02,
+  tBMP180_OSS_ULTRA_HIGH_RESOLUTION = 0x03
 };
 
 static constexpr unsigned short cBMP180_I2C_ADDRESS = 0x77;
@@ -109,23 +109,23 @@ public:
 
   mBMP180(core::tFrameworkElement *parent, const std::string &name = "PT") :
     tModule(parent, name),
-	par_operation_mode(tBMP180OSSMode::tBMP180_OSS_STANDARD),
-	i2c_setup_success_(false)
+    par_operation_mode(tBMP180OSSMode::tBMP180_OSS_STANDARD),
+    i2c_handler_(-1)
   {
 #ifdef _LIB_WIRING_PI_PRESENT_
-	  i2c_setup_success_ = wiringPiI2CSetup(cBMP180_I2C_ADDRESS);
+    i2c_handler_ = wiringPiI2CSetup(cBMP180_I2C_ADDRESS);
 #endif
-	  if(not i2c_setup_success_)
-	  {
-		  RRLIB_LOG_PRINT(ERROR, "I2C setup of BMP180 failed");
-	  }
+    if (i2c_handler_ < 0)
+    {
+      RRLIB_LOG_PRINT(ERROR, "I2C setup of BMP180 failed");
+    }
 #ifdef _LIB_WIRING_PI_PRESENT_
-	  else
-	  {
-		  wiringPiI2CWrite (cBMP180_I2C_ADDRESS, cBMP180_ID);
-		  auto id = wiringPiI2CRead (cBMP180_I2C_ADDRESS);
-		  RRLIB_LOG_PRINT(DEBUG, "Found device with ID: ", id, " at I2C address ", cBMP180_I2C_ADDRESS, ".");
-	  }
+    else
+    {
+      wiringPiI2CWrite(i2c_handler_, cBMP180_ID);
+      auto id = wiringPiI2CRead(i2c_handler_);
+      RRLIB_LOG_PRINT(DEBUG, "Found device with ID: ", id, " at I2C address ", cBMP180_I2C_ADDRESS, ".");
+    }
 #endif
   }
 
@@ -146,21 +146,21 @@ protected:
 //----------------------------------------------------------------------
 private:
 
-  bool i2c_setup_success_;
+  int i2c_handler_;
 
   inline virtual void Update() override
   {
 #ifdef _LIB_WIRING_PI_PRESENT_
-	  auto time = rrlib::time::Now();
+    auto time = rrlib::time::Now();
 
-	  if(i2c_setup_success_)
-	  {
-		  int temperature = wiringPiI2CRead(cBMP180_REGISTER_TEMPERATURE);
-		  out_temperature.Publish(static_cast<rrlib::si_units::tCelsius<double>>(temperature) * 0.1, time);
+    if (i2c_setup_success_)
+    {
+      int temperature = wiringPiI2CRead(cBMP180_REGISTER_TEMPERATURE);
+      out_temperature.Publish(static_cast<rrlib::si_units::tCelsius<double>>(temperature) * 0.1, time);
 
-		  int air_pressure = wiringPiI2CRead(cBMP180_REGISTER_AIR_PRESSURE + (par_operation_mode.Get() << 6));
-		  out_air_pressure.Publish(static_cast<rrlib::si_units::tPressure<double>>(air_pressure), time);
-	  }
+      int air_pressure = wiringPiI2CRead(cBMP180_REGISTER_AIR_PRESSURE + (par_operation_mode.Get() << 6));
+      out_air_pressure.Publish(static_cast<rrlib::si_units::tPressure<double>>(air_pressure), time);
+    }
 #endif
   }
 };

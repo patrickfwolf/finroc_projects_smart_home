@@ -87,7 +87,7 @@ public:
 
   mMQ9(core::tFrameworkElement *parent, const std::string &name = "MQ9") :
     tModule(parent, name),
-	par_supply_voltage(5.0)
+    par_supply_voltage(5.0)
   {}
 
 //----------------------------------------------------------------------

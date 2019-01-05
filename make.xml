@@ -1,12 +1,4 @@
 <targets>  
-  <library name="control">
-    <sources>
-      heat_control/mController.cpp
-      heat_control/mPumpInterface.cpp
-      vent_control/mController.cpp
-      user_interface/mLED.cpp
-    </sources>
-  </library> 
   
   <library name="shared">
     <sources>
@@ -40,29 +32,28 @@
     </sources>
   </library>      
  
-  <library name="hardware" optionallibs="wiringPi">
+  <finrocprogram name="HeatControl" optionallibs="wiringPi">
     <sources>
       heat_control/gHeatControl.cpp
-      vent_control/gVentControl.cpp
-      user_interface/gUserInterface.cpp
-     </sources>
-  </library> 
-  
-  <finrocprogram name="HeatControl">
-    <sources>
+      heat_control/mController.cpp
+      heat_control/mPumpInterface.cpp
       heat_control/pHeatControl.cpp
     </sources>
   </finrocprogram>
   
-  <finrocprogram name="VentControl">
+  <finrocprogram name="VentControl" optionallibs="wiringPi">
     <sources>
+      vent_control/mController.cpp
+      vent_control/gVentControl.cpp
       vent_control/pVentControl.cpp
     </sources>
   </finrocprogram>
   
-  <finrocprogram name="UserInterface">
+  <finrocprogram name="UserInterface" optionallibs="wiringPi">
     <sources>
+      user_interface/gUserInterface.cpp
       user_interface/pUserInterface.cpp
+      user_interface/mLED.cpp
     </sources>
   </finrocprogram>
   
