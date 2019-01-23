@@ -110,7 +110,7 @@ gVentControl::gVentControl(core::tFrameworkElement *parent, const std::string &n
 #endif
 
   auto pt100 = new shared::mPT100(this, "PT100");
-  pt100->par_pre_resistance.Set(100);
+  pt100->par_pre_resistance.Set(93.5);
   pt100->par_supply_voltage.Set(5.0);
   pt100->par_reference_voltage.Set(5.0);
   pt100->in_voltage.ConnectTo(mcp3008->out_voltage.at(tMCP3008Output::ePT100));
@@ -118,7 +118,7 @@ gVentControl::gVentControl(core::tFrameworkElement *parent, const std::string &n
   auto pt100_filter = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT100 Filter");
   pt100_filter->par_number_of_ports.Set(1);
   pt100_filter->Init();
-  pt100_filter->par_weight.Set(0.25);
+  pt100_filter->par_weight.Set(0.1);
   pt100_filter->in_input_values.at(0).ConnectTo(pt100->out_temperature);
   pt100_filter->out_filtered_values.at(0).ConnectTo(this->out_pt100_temperature_room);
 

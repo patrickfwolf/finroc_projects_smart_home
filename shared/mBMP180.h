@@ -41,7 +41,7 @@
 // External includes (system with <>, local with "")
 //----------------------------------------------------------------------
 #ifdef _LIB_WIRING_PI_PRESENT_
-#include <wiringPiI2C.h>
+#include "rrlib/gpio/tI2C.h"
 #endif
 
 #include "rrlib/si_units/si_units.h"
@@ -71,16 +71,16 @@ enum tBMP180OSSMode
   tBMP180_OSS_ULTRA_HIGH_RESOLUTION = 0x03
 };
 
-static constexpr unsigned short cBMP180_I2C_ADDRESS = 0x77;
-static constexpr unsigned short cBMP180_ID = 0xD0;
-static constexpr unsigned short cBMP180_CTRL_MEAS = 0xF4;
-static constexpr unsigned short cBMP180_OUT_MSB = 0xF6;
-static constexpr unsigned short cBMP180_OUT_LSB = 0xF7;
-static constexpr unsigned short cBMP180_OUT_XLSB = 0xF8;
-static constexpr unsigned short cBMP180_SOFT_RESET = 0xE0;
+static constexpr uint8_t cBMP180_I2C_ADDRESS = 0x77;
+static constexpr uint8_t cBMP180_ID = 0xD0;
+static constexpr uint8_t cBMP180_CTRL_MEAS = 0xF4;
+static constexpr uint8_t cBMP180_OUT_MSB = 0xF6;
+static constexpr uint8_t cBMP180_OUT_LSB = 0xF7;
+static constexpr uint8_t cBMP180_OUT_XLSB = 0xF8;
+static constexpr uint8_t cBMP180_SOFT_RESET = 0xE0;
 
-static constexpr unsigned short cBMP180_REGISTER_TEMPERATURE = 0x2E;
-static constexpr unsigned short cBMP180_REGISTER_AIR_PRESSURE = 0x34;
+static constexpr uint8_t cBMP180_REGISTER_TEMPERATURE = 0x2E;
+static constexpr uint8_t cBMP180_REGISTER_AIR_PRESSURE = 0x34;
 
 //----------------------------------------------------------------------
 // Class declaration
@@ -109,23 +109,13 @@ public:
 
   mBMP180(core::tFrameworkElement *parent, const std::string &name = "PT") :
     tModule(parent, name),
-    par_operation_mode(tBMP180OSSMode::tBMP180_OSS_STANDARD),
-    i2c_handler_(-1)
+    par_operation_mode(tBMP180OSSMode::tBMP180_OSS_STANDARD)
+#ifdef _LIB_WIRING_PI_PRESENT_
+    , i2c_device_(cBMP180_I2C_ADDRESS)
+#endif
   {
 #ifdef _LIB_WIRING_PI_PRESENT_
-    i2c_handler_ = wiringPiI2CSetup(cBMP180_I2C_ADDRESS);
-#endif
-    if (i2c_handler_ < 0)
-    {
-      RRLIB_LOG_PRINT(ERROR, "I2C setup of BMP180 failed");
-    }
-#ifdef _LIB_WIRING_PI_PRESENT_
-    else
-    {
-      wiringPiI2CWrite(i2c_handler_, cBMP180_ID);
-      auto id = wiringPiI2CRead(i2c_handler_);
-      RRLIB_LOG_PRINT(DEBUG, "Found device with ID: ", id, " at I2C address ", cBMP180_I2C_ADDRESS, ".");
-    }
+     RRLIB_LOG_PRINT(DEBUG, "Found device with ID: ", i2c_device_.ReadByte(cBMP180_ID), " at I2C address ", i2c_device_.GetDeviceAddress(), ".");
 #endif
   }
 
@@ -146,7 +136,7 @@ protected:
 //----------------------------------------------------------------------
 private:
 
-  int i2c_handler_;
+  rrlib::gpio::tI2C i2c_device_;
 
   inline virtual void Update() override
   {
@@ -155,11 +145,24 @@ private:
 
     if (i2c_setup_success_)
     {
-      int temperature = wiringPiI2CRead(cBMP180_REGISTER_TEMPERATURE);
-      out_temperature.Publish(static_cast<rrlib::si_units::tCelsius<double>>(temperature) * 0.1, time);
+      // start temperature measurement
+      i2c_device_.WriteByte(cBMP180_CTRL_MEAS, cBMP180_REGISTER_TEMPERATURE);
+      uint32_t xlsb, lsb, msb;
+      i2c_device_.ReadByte(cBMP180_OUT_XLSB, (uint8_t)xlsb);
+      i2c_device_.ReadByte(cBMP180_OUT_LSB, (uint8_t)lsb);
+      i2c_device_.ReadByte(cBMP180_OUT_MSB, (uint8_t)msb);
+      lsb = lsb << 8;
+      msb = msb << 16;
+      int32_t result = msb | lsb | xlsb;
 
-      int air_pressure = wiringPiI2CRead(cBMP180_REGISTER_AIR_PRESSURE + (par_operation_mode.Get() << 6));
-      out_air_pressure.Publish(static_cast<rrlib::si_units::tPressure<double>>(air_pressure), time);
+      out_temperature.Publish(static_cast<rrlib::si_units::tCelsius<double>>(result) * 0.1, time);
+
+	  // start temperature measurement
+//	  i2c_device_.WriteByte(cBMP180_CTRL_MEAS, cBMP180_REGISTER_AIR_PRESSURE + (static_cast<uint8_t>(par_operation_mode.Get()) << 6));
+//
+//
+//      int air_pressure = wiringPiI2CRead(cBMP180_REGISTER_AIR_PRESSURE + (par_operation_mode.Get() << 6));
+//      out_air_pressure.Publish(static_cast<rrlib::si_units::tPressure<double>>(air_pressure), time);
     }
 #endif
   }

@@ -77,7 +77,10 @@ public:
   tInput<rrlib::si_units::tVoltage<double>> in_voltage;
 
   tOutput<rrlib::si_units::tAmountOfSubstance<double>> out_carbon_monoxid;
+  tOutput<rrlib::si_units::tElectricResistance<double>> out_resistance;
 
+  tParameter<rrlib::si_units::tElectricResistance<double>> par_pre_resistance;
+  tParameter<rrlib::si_units::tVoltage<double>> par_reference_voltage;
   tParameter<rrlib::si_units::tVoltage<double>> par_supply_voltage;
 
 //----------------------------------------------------------------------
@@ -87,6 +90,8 @@ public:
 
   mMQ9(core::tFrameworkElement *parent, const std::string &name = "MQ9") :
     tModule(parent, name),
+    par_pre_resistance(31.0),
+    par_reference_voltage(5.0),
     par_supply_voltage(5.0)
   {}
 
@@ -102,6 +107,26 @@ protected:
    */
   ~mMQ9() {}
 
+  /*!
+   * Determines resistance value of PT sensor
+   * @param voltage A/D voltage
+   * @param reference_voltage reference voltage of A/D converter
+   * @param pre_resistance pre resistance of PT sensor
+   * @return resistance
+   */
+  inline rrlib::si_units::tElectricResistance<double> GetResistance(
+    const rrlib::si_units::tVoltage<double> & voltage,
+    const rrlib::si_units::tVoltage<double> & reference_voltage,
+    const rrlib::si_units::tElectricResistance<double> & pre_resistance) const
+  {
+	if(voltage.Value() == 0)
+	{
+	  return pre_resistance;
+	}
+
+    return pre_resistance * ((reference_voltage / voltage).Value() - 1.0);
+  }
+
 //----------------------------------------------------------------------
 // Private fields and methods
 //----------------------------------------------------------------------
@@ -109,6 +134,9 @@ private:
 
   inline virtual void Update() override
   {
+      auto resistance =  GetResistance(in_voltage.Get(), par_reference_voltage.Get(), par_pre_resistance.Get());
+
+      out_resistance.Publish(resistance, in_voltage.GetTimestamp());
   }
 };
 
