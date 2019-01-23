@@ -136,34 +136,35 @@ protected:
 //----------------------------------------------------------------------
 private:
 
+#ifdef _LIB_WIRING_PI_PRESENT_
   rrlib::gpio::tI2C i2c_device_;
+#endif
 
   inline virtual void Update() override
   {
 #ifdef _LIB_WIRING_PI_PRESENT_
     auto time = rrlib::time::Now();
 
-    if (i2c_setup_success_)
-    {
       // start temperature measurement
       i2c_device_.WriteByte(cBMP180_CTRL_MEAS, cBMP180_REGISTER_TEMPERATURE);
-      uint32_t xlsb, lsb, msb;
-      i2c_device_.ReadByte(cBMP180_OUT_XLSB, (uint8_t)xlsb);
-      i2c_device_.ReadByte(cBMP180_OUT_LSB, (uint8_t)lsb);
-      i2c_device_.ReadByte(cBMP180_OUT_MSB, (uint8_t)msb);
+      uint32_t xlsb = i2c_device_.ReadByte(cBMP180_OUT_XLSB);
+      uint32_t lsb = i2c_device_.ReadByte(cBMP180_OUT_LSB);
+      uint32_t msb = i2c_device_.ReadByte(cBMP180_OUT_MSB);
       lsb = lsb << 8;
       msb = msb << 16;
-      int32_t result = msb | lsb | xlsb;
-
+      uint32_t result = msb | lsb | xlsb;
       out_temperature.Publish(static_cast<rrlib::si_units::tCelsius<double>>(result) * 0.1, time);
 
 	  // start temperature measurement
-//	  i2c_device_.WriteByte(cBMP180_CTRL_MEAS, cBMP180_REGISTER_AIR_PRESSURE + (static_cast<uint8_t>(par_operation_mode.Get()) << 6));
-//
-//
-//      int air_pressure = wiringPiI2CRead(cBMP180_REGISTER_AIR_PRESSURE + (par_operation_mode.Get() << 6));
-//      out_air_pressure.Publish(static_cast<rrlib::si_units::tPressure<double>>(air_pressure), time);
-    }
+	  i2c_device_.WriteByte(cBMP180_CTRL_MEAS, cBMP180_REGISTER_AIR_PRESSURE + (static_cast<uint8_t>(par_operation_mode.Get()) << 6));
+      uint32_t xlsb = i2c_device_.ReadByte(cBMP180_OUT_XLSB);
+      uint32_t lsb = i2c_device_.ReadByte(cBMP180_OUT_LSB);
+      uint32_t msb = i2c_device_.ReadByte(cBMP180_OUT_MSB);
+      lsb = lsb << 8;
+      msb = msb << 16;
+      int32_t result = msb | lsb | xlsb;
+      out_air_pressure.Publish(static_cast<rrlib::si_units::tPressure<double>>(result), time);
+
 #endif
   }
 };
