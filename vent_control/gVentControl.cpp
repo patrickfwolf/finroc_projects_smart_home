@@ -36,6 +36,8 @@
 #include "libraries/gpio_raspberry_pi/mRaspberryIO.h"
 #endif
 
+#include "libraries/signal_filters/mExponentialFilter.h"
+
 #include <cassert>
 
 //----------------------------------------------------------------------
@@ -103,16 +105,22 @@ gVentControl::gVentControl(core::tFrameworkElement *parent, const std::string &n
   auto mcp3008 = new shared::mMCP3008<tMCP3008Output::eCOUNT>(this, "MCP3008");
   mcp3008->par_reference_voltage.Set(5.0);
 #ifdef _LIB_WIRING_PI_PRESENT_
-  mcp3008->in_voltage_raw.at(tMCP3008Output::ePT100).ConnectTo(gpio_interface->GetOutputs().GetQualifiedName() + "MCP3008 AD Voltage PT100");
-  mcp3008->in_voltage_raw.at(tMCP3008Output::eMQ9).ConnectTo(gpio_interface->GetOutputs().GetQualifiedName() + "MCP3008 AD Voltage MQ9");
+  mcp3008->in_voltage_raw.at(tMCP3008Output::ePT100).ConnectTo("/Main Thread/VentControl/Raspberry Pi GPIO Interface/Output/MCP3008 AD Voltage PT100");
+  mcp3008->in_voltage_raw.at(tMCP3008Output::eMQ9).ConnectTo("/Main Thread/VentControl/Raspberry Pi GPIO Interface/Output/MCP3008 AD Voltage MQ9");
 #endif
 
   auto pt100 = new shared::mPT100(this, "PT100");
-  pt100->par_pre_resistance.Set(1000);
+  pt100->par_pre_resistance.Set(100);
   pt100->par_supply_voltage.Set(5.0);
   pt100->par_reference_voltage.Set(5.0);
   pt100->in_voltage.ConnectTo(mcp3008->out_voltage.at(tMCP3008Output::ePT100));
-  pt100->out_temperature.ConnectTo(this->out_pt100_temperature_room);
+
+  auto pt100_filter = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT100 Filter");
+  pt100_filter->par_number_of_ports.Set(1);
+  pt100_filter->Init();
+  pt100_filter->par_weight.Set(0.25);
+  pt100_filter->in_input_values.at(0).ConnectTo(pt100->out_temperature);
+  pt100_filter->out_filtered_values.at(0).ConnectTo(this->out_pt100_temperature_room);
 
   auto mq9 = new shared::mMQ9(this, "MQ9");
   mq9->in_voltage.ConnectTo(mcp3008->out_voltage.at(tMCP3008Output::eMQ9));
