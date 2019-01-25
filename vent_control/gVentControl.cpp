@@ -99,6 +99,7 @@ gVentControl::gVentControl(core::tFrameworkElement *parent, const std::string &n
 #endif
 
   auto bmp180 = new shared::mBMP180(this, "BMP180");
+  bmp180->par_temperature_offset.Set(rrlib::si_units::tCelsius<double>(-3.5));
   bmp180->out_air_pressure.ConnectTo(this->out_air_pressure_room);
   bmp180->out_temperature.ConnectTo(this->out_bmp180_temperature_room);
 
@@ -126,7 +127,7 @@ gVentControl::gVentControl(core::tFrameworkElement *parent, const std::string &n
   mq9->in_voltage.ConnectTo(mcp3008->out_voltage.at(tMCP3008Output::eMQ9));
   mq9->out_carbon_monoxid.ConnectTo(this->out_carbon_monoxid_room);
 #ifdef _LIB_WIRING_PI_PRESENT_
-  this->out_carbon_monoxid_threshold_room.ConnectTo(gpio_interface->GetOutputs().GetQualifiedName() + "GPIO MQ9");
+  this->out_carbon_monoxid_threshold_room.ConnectTo("/Main Thread/VentControl/Raspberry Pi GPIO Interface/Output/GPIO MQ9");
 #endif
 
   auto controller = new mController(this, "Controller");

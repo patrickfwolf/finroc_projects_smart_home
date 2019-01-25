@@ -1,12 +1,15 @@
 <targets>  
   
-  <library name="shared">
+  <library name="shared_sensors">
     <sources>
       shared/mMCP3008.h
       shared/mPT.h
       shared/mMQ9.h
-      shared/tMCP3008.h
-      shared/tPT.h
+    </sources>
+  </library>
+    
+  <library name="shared_data_structures">
+    <sources>
       shared/tPumps.h
       shared/tTemperatures.h
     </sources>
