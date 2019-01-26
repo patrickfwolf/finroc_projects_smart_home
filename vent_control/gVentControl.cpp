@@ -37,6 +37,7 @@
 #endif
 
 #include "libraries/signal_filters/mExponentialFilter.h"
+#include "libraries/structure_elements/mMean.h"
 
 #include <cassert>
 
@@ -122,6 +123,13 @@ gVentControl::gVentControl(core::tFrameworkElement *parent, const std::string &n
   pt100_filter->par_weight.Set(0.1);
   pt100_filter->in_input_values.at(0).ConnectTo(pt100->out_temperature);
   pt100_filter->out_filtered_values.at(0).ConnectTo(this->out_pt100_temperature_room);
+
+  auto average_temperature_room = new structure_elements::mMean<rrlib::si_units::tCelsius<double>>(this, "Average Temperature Room");
+  average_temperature_room->par_number_of_values.Set(2);
+  average_temperature_room->Init();
+  average_temperature_room->in_signals.at(0).ConnectTo(pt100_filter->out_filtered_values.at(0));
+  average_temperature_room->in_signals.at(0).ConnectTo(bmp180->out_temperature);
+  average_temperature_room->out_signal.ConnectTo(this->out_average_temperature_room);
 
   auto mq9 = new shared::mMQ9(this, "MQ9");
   mq9->in_voltage.ConnectTo(mcp3008->out_voltage.at(tMCP3008Output::eMQ9));

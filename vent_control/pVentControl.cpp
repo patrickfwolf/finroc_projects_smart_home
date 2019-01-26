@@ -84,5 +84,6 @@ void CreateMainGroup(const std::vector<std::string> &remaining_arguments)
 
   auto ventilation = new finroc::smart_home::vent_control::gVentControl(main_thread);
   ventilation->in_temperature_furnace.ConnectTo("");
+  ventilation->out_average_temperature_room.ConnectTo("");
 
 }

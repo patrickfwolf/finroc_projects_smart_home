@@ -107,6 +107,7 @@ public:
 
   tControllerOutput<heat_control_states::tCurrentState> co_heating_state;
   tControllerOutput<tControlModeType> co_control_mode;
+  tControllerOutput<tErrorState> co_error_state;
 
 //----------------------------------------------------------------------
 // Public methods and typedefs

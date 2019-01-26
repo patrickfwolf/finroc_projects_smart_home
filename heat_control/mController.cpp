@@ -64,7 +64,9 @@ static runtime_construction::tStandardCreateModuleAction<mController> cCREATE_AC
 mController::mController(core::tFrameworkElement *parent, const std::string &name) :
   tSenseControlModule(parent, name, false), // change to 'true' to make module's ports shared (so that ports in other processes can connect to its sensor outputs and controller inputs)
   ci_control_mode(tControlModeType::eAUTOMATIC),
-  control_state_(nullptr)
+  control_state_(nullptr),
+  set_point_(23.0),
+  error_(tErrorState::eNO_ERROR)
 {
   control_state_ = std::unique_ptr<heat_control_states::tState>(new heat_control_states::tReady());
 }
@@ -74,6 +76,18 @@ mController::mController(core::tFrameworkElement *parent, const std::string &nam
 //----------------------------------------------------------------------
 mController::~mController()
 {
+}
+
+//----------------------------------------------------------------------
+// mController OnParameterChange
+//----------------------------------------------------------------------
+void mController::OnParameterChange()
+{
+	if(par_temperature_set_point_room.HasChanged())
+	{
+		this->set_point_ = par_temperature_set_point_room.Get();
+		co_set_point_temperature.Publish(set_point_, rrlib::time::Now());
+	}
 }
 
 //----------------------------------------------------------------------
@@ -87,13 +101,17 @@ void mController::Sense()
     // pump control
     std::unique_ptr<heat_control_states::tState> next_state;
 
+    // TODO check time stamps
+    // TODO consider external temperature
+    // TODO check plausibility of temperatures
+
     shared::tTemperatures temperatures
     {
       si_temperature_boiler_middle.Get(),
       si_temperature_room.Get(),
       si_temperature_solar.Get(),
       si_temperature_ground.Get(),
-      par_temperature_set_point_room.Get()
+      set_point_
     };
     control_state_->ComputeControlState(next_state, temperatures);
     if (control_state_->HasChanged())
@@ -158,7 +176,24 @@ void mController::Control()
     co_control_mode.Publish(ci_control_mode.Get());
   }
 
+  // set point
+  if(ci_increase_set_point_temperature.HasChanged())
+  {
+	set_point_ += rrlib::si_units::tCelsius<double>(0.5);
+	co_set_point_temperature.Publish(set_point_, ci_increase_set_point_temperature.GetTimestamp());
+  }
+  if(ci_decrease_set_point_temperature.HasChanged())
+  {
+    set_point_ -= rrlib::si_units::tCelsius<double>(0.5);
+    co_set_point_temperature.Publish(set_point_, ci_decrease_set_point_temperature.GetTimestamp());
+  }
+  if(ci_reset_set_point_temperature.HasChanged())
+  {
+    set_point_ = par_temperature_set_point_room.Get();
+    co_set_point_temperature.Publish(set_point_, ci_reset_set_point_temperature.GetTimestamp());
+  }
 
+  // control mode
   switch (ci_control_mode.Get())
   {
   case tControlModeType::eAUTOMATIC:

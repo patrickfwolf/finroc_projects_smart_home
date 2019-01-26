@@ -69,6 +69,13 @@ enum class tControlModeType
   eMANUAL
 };
 
+enum class tErrorState
+{
+  eNO_ERROR,
+  eOUTDATED_TEMPERATURE,
+  eIMPLAUSIBLE_TEMPERATURE
+};
+
 //----------------------------------------------------------------------
 // Class declaration
 //----------------------------------------------------------------------
@@ -102,9 +109,9 @@ public:
   tControllerInput<bool> ci_disable_pump_room;
   tControllerInput<bool> ci_disable_pump_ground;
 
-  tControllerInput<data_ports::tEvent> ci_increase_set_point_temperature_room;
-  tControllerInput<data_ports::tEvent> ci_decrease_set_point_temperature_room;
-  tControllerInput<data_ports::tEvent> ci_reset_to_default_set_point_temperature_room;
+  tControllerInput<data_ports::tEvent> ci_increase_set_point_temperature;
+  tControllerInput<data_ports::tEvent> ci_decrease_set_point_temperature;
+  tControllerInput<data_ports::tEvent> ci_reset_set_point_temperature;
 
   tControllerOutput<bool> co_led_online_red;
   tControllerOutput<bool> co_led_online_yellow;
@@ -116,6 +123,9 @@ public:
 
   tControllerOutput<tControlModeType> co_control_mode;
   tControllerOutput<heat_control_states::tCurrentState> co_heating_state;
+  tControllerOutput<tErrorState> co_error_state;
+  tControllerOutput<rrlib::si_units::tCelsius<double>> co_set_point_temperature;
+
 
   tParameter<rrlib::si_units::tCelsius<double>> par_temperature_set_point_room;
 
@@ -147,7 +157,11 @@ private:
 
   virtual void Control() override;
 
+  virtual void OnParameterChange() override;
+
   std::unique_ptr<heat_control_states::tState> control_state_;
+  rrlib::si_units::tCelsius<double> set_point_;
+  tErrorState error_;
 
 };
 

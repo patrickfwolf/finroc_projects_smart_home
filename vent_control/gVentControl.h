@@ -82,6 +82,7 @@ public:
   tOutput<bool> out_ventilation;
   tOutput<rrlib::si_units::tCelsius<double>> out_pt100_temperature_room;
   tOutput<rrlib::si_units::tCelsius<double>> out_bmp180_temperature_room;
+  tOutput<rrlib::si_units::tCelsius<double>> out_average_temperature_room;
   tOutput<rrlib::si_units::tPressure<double>> out_air_pressure_room;
   tOutput<rrlib::si_units::tAmountOfSubstance<double>> out_carbon_monoxid_room;
   tOutput<bool> out_carbon_monoxid_threshold_room;
