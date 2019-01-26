@@ -89,7 +89,7 @@ void mController::Sense()
 
     shared::tTemperatures temperatures
     {
-      si_temperature_boiler.Get(),
+      si_temperature_boiler_middle.Get(),
       si_temperature_room.Get(),
       si_temperature_solar.Get(),
       si_temperature_ground.Get(),
@@ -104,32 +104,32 @@ void mController::Sense()
     co_heating_state.Publish(control_state_->GetCurrentState());
 
     // led control
-    auto speicher = si_temperature_boiler.Get();
-    if (speicher <= rrlib::si_units::tCelsius<double>(25.0))
+    auto boiler = si_temperature_boiler_middle.Get();
+    if (boiler <= rrlib::si_units::tCelsius<double>(25.0))
     {
       co_led_online_green.Publish(false);
       co_led_online_yellow.Publish(false);
       co_led_online_red.Publish(true);
     }
-    else if (speicher > rrlib::si_units::tCelsius<double>(25.0) && speicher <= rrlib::si_units::tCelsius<double>(30.0))
+    else if (boiler > rrlib::si_units::tCelsius<double>(25.0) && boiler <= rrlib::si_units::tCelsius<double>(30.0))
     {
       co_led_online_green.Publish(false);
       co_led_online_yellow.Publish(true);
       co_led_online_red.Publish(true);
     }
-    else if (speicher > rrlib::si_units::tCelsius<double>(30.0) && speicher <= rrlib::si_units::tCelsius<double>(40.0))
+    else if (boiler > rrlib::si_units::tCelsius<double>(30.0) && boiler <= rrlib::si_units::tCelsius<double>(40.0))
     {
       co_led_online_green.Publish(false);
       co_led_online_yellow.Publish(true);
       co_led_online_red.Publish(false);
     }
-    else if (speicher > rrlib::si_units::tCelsius<double>(40.0) && speicher <= rrlib::si_units::tCelsius<double>(45.0))
+    else if (boiler > rrlib::si_units::tCelsius<double>(40.0) && boiler <= rrlib::si_units::tCelsius<double>(45.0))
     {
       co_led_online_green.Publish(true);
       co_led_online_yellow.Publish(true);
       co_led_online_red.Publish(false);
     }
-    else if (speicher > rrlib::si_units::tCelsius<double>(45.0))
+    else if (boiler > rrlib::si_units::tCelsius<double>(45.0))
     {
       co_led_online_green.Publish(true);
       co_led_online_yellow.Publish(false);

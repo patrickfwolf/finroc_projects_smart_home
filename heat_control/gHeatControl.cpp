@@ -70,8 +70,12 @@ enum tMCP3008Output
 {
 	ePT1000_SOLAR = 0,
 	ePT1000_ROOM,
-	ePT1000_BOILER,
+	ePT1000_BOILER_MIDDLE,
 	ePT1000_GROUND,
+	ePT100_BOILER_TOP,
+	ePT100_BOILER_BOTTOM,
+	ePT100_FURNACE,
+	ePT100_GARAGE,
 	eCOUNT
 };
 //----------------------------------------------------------------------
@@ -90,29 +94,29 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
                            const std::string &structure_config_file) :
   tSenseControlGroup(parent, name, structure_config_file, true), // change to 'true' to make group's ports shared (so that ports in other processes can connect to its output and/or input ports)
   ci_control_mode(tControlModeType::eAUTOMATIC),
-  ci_manual_pump_online_solar(false),
-  ci_manual_pump_online_room(false),
-  ci_manual_pump_online_ground(false),
+  ci_manual_pump_solar(false),
+  ci_manual_pump_room(false),
+  ci_manual_pump_ground(false),
   ci_disable_pump_room(false),
   ci_disable_pump_ground(false)
 {
   auto controller = new mController(this, "Controller");
-  controller->par_temperature_set_point_room.Set(22.5);
-
+  controller->par_temperature_set_point_room.Set(23);
+  this->si_temperature_room_external.ConnectTo(controller->si_temperature_room_external);
   this->ci_control_mode.ConnectTo(controller->ci_control_mode);
 
-  this->ci_manual_pump_online_ground.ConnectTo(controller->ci_manual_pump_online_ground);
-  this->ci_manual_pump_online_room.ConnectTo(controller->ci_manual_pump_online_room);
-  this->ci_manual_pump_online_solar.ConnectTo(controller->ci_manual_pump_online_solar);
+  this->ci_manual_pump_ground.ConnectTo(controller->ci_manual_pump_online_ground);
+  this->ci_manual_pump_room.ConnectTo(controller->ci_manual_pump_online_room);
+  this->ci_manual_pump_solar.ConnectTo(controller->ci_manual_pump_online_solar);
   this->ci_disable_pump_ground.ConnectTo(controller->ci_disable_pump_ground);
   this->ci_disable_pump_room.ConnectTo(controller->ci_disable_pump_room);
 
-  this->so_led_online_green.ConnectTo(controller->co_led_online_green);
-  this->so_led_online_yellow.ConnectTo(controller->co_led_online_yellow);
-  this->so_led_online_red.ConnectTo(controller->co_led_online_red);
-  this->so_pump_online_ground.ConnectTo(controller->co_pump_online_ground);
-  this->so_pump_online_room.ConnectTo(controller->co_pump_online_room);
-  this->so_pump_online_solar.ConnectTo(controller->co_pump_online_solar);
+  this->so_led_green.ConnectTo(controller->co_led_online_green);
+  this->so_led_yellow.ConnectTo(controller->co_led_online_yellow);
+  this->so_led_red.ConnectTo(controller->co_led_online_red);
+  this->so_pump_ground.ConnectTo(controller->co_pump_online_ground);
+  this->so_pump_room.ConnectTo(controller->co_pump_online_room);
+  this->so_pump_solar.ConnectTo(controller->co_pump_online_solar);
 
   this->co_control_mode.ConnectTo(controller->co_control_mode);
   this->co_heating_state.ConnectTo(controller->co_heating_state);
@@ -139,11 +143,55 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   pt1000_room->par_supply_voltage.Set(5.0);
   pt1000_room->in_voltage.ConnectTo(mcp_3008->out_voltage.at(tMCP3008Output::ePT1000_ROOM));
 
-  auto pt1000_boiler = new shared::mPT1000(this, "PT1000 Boiler");
-  pt1000_boiler->par_pre_resistance.Set(1949);
-  pt1000_boiler->par_reference_voltage.Set(5.0);
-  pt1000_boiler->par_supply_voltage.Set(5.0);
-  pt1000_boiler->in_voltage.ConnectTo(mcp_3008->out_voltage.at(tMCP3008Output::ePT1000_BOILER));
+  auto filter_room = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT1000 Room Filter");
+  filter_room->par_number_of_ports.Set(1);
+  filter_room->Init();
+  filter_room->par_weight.Set(0.00035);
+  filter_room->par_initial_value.Set(rrlib::si_units::tCelsius<double>(20.0));
+  filter_room->in_input_values.at(0).ConnectTo(pt1000_room->out_temperature);
+  filter_room->out_filtered_values.at(0).ConnectTo(controller->si_temperature_room);
+
+  auto pt1000_boiler_middle = new shared::mPT1000(this, "PT1000 Boiler Middle");
+  pt1000_boiler_middle->par_pre_resistance.Set(1949);
+  pt1000_boiler_middle->par_reference_voltage.Set(5.0);
+  pt1000_boiler_middle->par_supply_voltage.Set(5.0);
+  pt1000_boiler_middle->in_voltage.ConnectTo(mcp_3008->out_voltage.at(tMCP3008Output::ePT1000_BOILER_MIDDLE));
+
+  auto filter_boiler_middle = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT1000 Boiler Middle Filter");
+  filter_boiler_middle->par_number_of_ports.Set(1);
+  filter_boiler_middle->Init();
+  filter_boiler_middle->par_weight.Set(0.0025);
+  filter_boiler_middle->par_initial_value.Set(rrlib::si_units::tCelsius<double>(20.0));
+  filter_boiler_middle->in_input_values.at(0).ConnectTo(pt1000_boiler_middle->out_temperature);
+  filter_boiler_middle->out_filtered_values.at(0).ConnectTo(controller->si_temperature_boiler_middle);
+
+  auto pt100_boiler_bottom = new shared::mPT100(this, "PT100 Boiler Bottom");
+  pt100_boiler_bottom->par_pre_resistance.Set(100);
+  pt100_boiler_bottom->par_reference_voltage.Set(5.0);
+  pt100_boiler_bottom->par_supply_voltage.Set(5.0);
+  pt100_boiler_bottom->in_voltage.ConnectTo(mcp_3008->out_voltage.at(tMCP3008Output::ePT100_BOILER_BOTTOM));
+
+  auto filter_boiler_bottom = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT100 Boiler Ground Filter");
+  filter_boiler_bottom->par_number_of_ports.Set(1);
+  filter_boiler_bottom->Init();
+  filter_boiler_bottom->par_weight.Set(0.1);
+  filter_boiler_bottom->par_initial_value.Set(rrlib::si_units::tCelsius<double>(20.0));
+  filter_boiler_bottom->in_input_values.at(0).ConnectTo(pt100_boiler_bottom->out_temperature);
+  filter_boiler_bottom->out_filtered_values.at(0).ConnectTo(controller->si_temperature_boiler_bottom);
+
+  auto pt100_boiler_top = new shared::mPT100(this, "PT100 Boiler Top");
+  pt100_boiler_top->par_pre_resistance.Set(100);
+  pt100_boiler_top->par_reference_voltage.Set(5.0);
+  pt100_boiler_top->par_supply_voltage.Set(5.0);
+  pt100_boiler_top->in_voltage.ConnectTo(mcp_3008->out_voltage.at(tMCP3008Output::ePT100_BOILER_TOP));
+
+  auto filter_boiler_top = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT100 Boiler Top Filter");
+  filter_boiler_top->par_number_of_ports.Set(1);
+  filter_boiler_top->Init();
+  filter_boiler_top->par_weight.Set(0.0025);
+  filter_boiler_top->par_initial_value.Set(rrlib::si_units::tCelsius<double>(20.0));
+  filter_boiler_top->in_input_values.at(0).ConnectTo(pt100_boiler_top->out_temperature);
+  filter_boiler_top->out_filtered_values.at(0).ConnectTo(controller->si_temperature_boiler_top);
 
   auto pt1000_solar = new shared::mPT1000(this, "PT1000 Solar");
   pt1000_solar->par_pre_resistance.Set(1987);
@@ -151,44 +199,64 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   pt1000_solar->par_supply_voltage.Set(5.0);
   pt1000_solar->in_voltage.ConnectTo(mcp_3008->out_voltage.at(tMCP3008Output::ePT1000_SOLAR));
 
+  auto filter_solar = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT1000 Solar Filter");
+  filter_solar->par_number_of_ports.Set(1);
+  filter_solar->Init();
+  filter_solar->par_weight.Set(0.0025);
+  filter_solar->par_initial_value.Set(rrlib::si_units::tCelsius<double>(20.0));
+  filter_solar->in_input_values.at(0).ConnectTo(pt1000_solar->out_temperature);
+  filter_solar->out_filtered_values.at(0).ConnectTo(controller->si_temperature_solar);
+
   auto pt1000_ground = new shared::mPT1000(this, "PT1000 Ground");
   pt1000_ground->par_pre_resistance.Set(1922);
   pt1000_ground->par_reference_voltage.Set(5.0);
   pt1000_ground->par_supply_voltage.Set(5.0);
   pt1000_ground->in_voltage.ConnectTo(mcp_3008->out_voltage.at(tMCP3008Output::ePT1000_GROUND));
 
-  auto exponential_filter_room = new signal_filters::mExponentialFilter<rrlib::si_units::tTemperature<double>>(this, "Filtered Temperature Room");
-  exponential_filter_room->par_number_of_ports.Set(1);
-  exponential_filter_room->Init();
-  exponential_filter_room->par_weight.Set(0.00035);
-  exponential_filter_room->in_input_values.at(0).ConnectTo(pt1000_room->out_temperature);
-  exponential_filter_room->out_filtered_values.at(0).ConnectTo(controller->si_temperature_room);
+  auto filter_ground = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "Filtered Temperature Ground");
+  filter_ground->par_number_of_ports.Set(1);
+  filter_ground->Init();
+  filter_ground->par_weight.Set(0.0025);
+  filter_ground->par_initial_value.Set(rrlib::si_units::tCelsius<double>(20.0));
+  filter_ground->in_input_values.at(0).ConnectTo(pt1000_ground->out_temperature);
+  filter_ground->out_filtered_values.at(0).ConnectTo(controller->si_temperature_ground);
 
-  auto exponential_filter_ground = new signal_filters::mExponentialFilter<rrlib::si_units::tTemperature<double>>(this, "Filtered Temperature Ground");
-  exponential_filter_ground->par_number_of_ports.Set(1);
-  exponential_filter_ground->Init();
-  exponential_filter_ground->par_weight.Set(0.0025);
-  exponential_filter_ground->in_input_values.at(0).ConnectTo(pt1000_ground->out_temperature);
-  exponential_filter_ground->out_filtered_values.at(0).ConnectTo(controller->si_temperature_ground);
+  auto pt100_furnace = new shared::mPT100(this, "PT100 Furnace");
+  pt100_furnace->par_pre_resistance.Set(100);
+  pt100_furnace->par_reference_voltage.Set(5.0);
+  pt100_furnace->par_supply_voltage.Set(5.0);
+  pt100_furnace->in_voltage.ConnectTo(mcp_3008->out_voltage.at(tMCP3008Output::ePT100_FURNACE));
 
-  auto exponential_filter_solar = new signal_filters::mExponentialFilter<rrlib::si_units::tTemperature<double>>(this, "Filtered Temperature Solar");
-  exponential_filter_solar->par_number_of_ports.Set(1);
-  exponential_filter_solar->Init();
-  exponential_filter_solar->par_weight.Set(0.0025);
-  exponential_filter_solar->in_input_values.at(0).ConnectTo(pt1000_solar->out_temperature);
-  exponential_filter_solar->out_filtered_values.at(0).ConnectTo(controller->si_temperature_solar);
+  auto filter_furnace = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT100 Furnace Filter");
+  filter_furnace->par_number_of_ports.Set(1);
+  filter_furnace->Init();
+  filter_furnace->par_weight.Set(0.0025);
+  filter_furnace->par_initial_value.Set(rrlib::si_units::tCelsius<double>(20.0));
+  filter_furnace->in_input_values.at(0).ConnectTo(pt100_furnace->out_temperature);
+  filter_furnace->out_filtered_values.at(0).ConnectTo(controller->si_temperature_furnace);
 
-  auto exponential_filter_boiler = new signal_filters::mExponentialFilter<rrlib::si_units::tTemperature<double>>(this, "Filtered Temperature Boiler");
-  exponential_filter_boiler->par_number_of_ports.Set(1);
-  exponential_filter_boiler->Init();
-  exponential_filter_boiler->par_weight.Set(0.0025);
-  exponential_filter_boiler->in_input_values.at(0).ConnectTo(pt1000_boiler->out_temperature);
-  exponential_filter_boiler->out_filtered_values.at(0).ConnectTo(controller->si_temperature_boiler);
+  auto pt100_garage = new shared::mPT100(this, "PT100 Garage");
+  pt100_garage->par_pre_resistance.Set(100);
+  pt100_garage->par_reference_voltage.Set(5.0);
+  pt100_garage->par_supply_voltage.Set(5.0);
+  pt100_garage->in_voltage.ConnectTo(mcp_3008->out_voltage.at(tMCP3008Output::ePT100_GARAGE));
 
-  this->so_temperature_room.ConnectTo(exponential_filter_room->out_filtered_values.at(0));
-  this->so_temperature_ground.ConnectTo(exponential_filter_ground->out_filtered_values.at(0));
-  this->so_temperature_solar.ConnectTo(exponential_filter_solar->out_filtered_values.at(0));
-  this->so_temperature_boiler.ConnectTo(exponential_filter_boiler->out_filtered_values.at(0));
+  auto filter_garage = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT100 Furnace Filter");
+  filter_garage->par_number_of_ports.Set(1);
+  filter_garage->Init();
+  filter_garage->par_weight.Set(0.0025);
+  filter_garage->par_initial_value.Set(rrlib::si_units::tCelsius<double>(20.0));
+  filter_garage->in_input_values.at(0).ConnectTo(pt100_garage->out_temperature);
+  filter_garage->out_filtered_values.at(0).ConnectTo(controller->si_temperature_garage);
+
+  this->so_temperature_room.ConnectTo(filter_room->out_filtered_values.at(0));
+  this->so_temperature_ground.ConnectTo(filter_ground->out_filtered_values.at(0));
+  this->so_temperature_solar.ConnectTo(filter_solar->out_filtered_values.at(0));
+  this->so_temperature_boiler_middle.ConnectTo(filter_boiler_middle->out_filtered_values.at(0));
+  this->so_temperature_boiler_top.ConnectTo(filter_boiler_top->out_filtered_values.at(0));
+  this->so_temperature_boiler_bottom.ConnectTo(filter_boiler_bottom->out_filtered_values.at(0));
+  this->so_temperature_furnace.ConnectTo(filter_furnace->out_filtered_values.at(0));
+  this->so_temperature_garage.ConnectTo(filter_garage->out_filtered_values.at(0));
 
 }
 

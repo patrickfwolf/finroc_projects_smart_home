@@ -84,10 +84,15 @@ class mController : public structure::tSenseControlModule
 //----------------------------------------------------------------------
 public:
 
-  tSensorInput<rrlib::si_units::tCelsius<double>> si_temperature_boiler;
+  tSensorInput<rrlib::si_units::tCelsius<double>> si_temperature_boiler_top;
+  tSensorInput<rrlib::si_units::tCelsius<double>> si_temperature_boiler_middle;
+  tSensorInput<rrlib::si_units::tCelsius<double>> si_temperature_boiler_bottom;
   tSensorInput<rrlib::si_units::tCelsius<double>> si_temperature_room;
+  tSensorInput<rrlib::si_units::tCelsius<double>> si_temperature_room_external;
   tSensorInput<rrlib::si_units::tCelsius<double>> si_temperature_solar;
   tSensorInput<rrlib::si_units::tCelsius<double>> si_temperature_ground;
+  tSensorInput<rrlib::si_units::tCelsius<double>> si_temperature_furnace;
+  tSensorInput<rrlib::si_units::tCelsius<double>> si_temperature_garage;
 
   tControllerInput<tControlModeType> ci_control_mode;
   tControllerInput<bool> ci_manual_pump_online_solar;

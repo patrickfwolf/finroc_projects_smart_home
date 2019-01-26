@@ -79,25 +79,31 @@ public:
 
   tControllerInput<tControlModeType> ci_control_mode;
 
-  tControllerInput<bool> ci_manual_pump_online_solar;
-  tControllerInput<bool> ci_manual_pump_online_room;
-  tControllerInput<bool> ci_manual_pump_online_ground;
+  tControllerInput<bool> ci_manual_pump_solar;
+  tControllerInput<bool> ci_manual_pump_room;
+  tControllerInput<bool> ci_manual_pump_ground;
 
   tControllerInput<bool> ci_disable_pump_room;
   tControllerInput<bool> ci_disable_pump_ground;
 
-  tSensorOutput<rrlib::si_units::tTemperature<double>> so_temperature_boiler;
-  tSensorOutput<rrlib::si_units::tTemperature<double>> so_temperature_solar;
-  tSensorOutput<rrlib::si_units::tTemperature<double>> so_temperature_room;
-  tSensorOutput<rrlib::si_units::tTemperature<double>> so_temperature_ground;
+  tSensorInput<rrlib::si_units::tCelsius<double>> si_temperature_room_external;
 
-  tSensorOutput<bool> so_led_online_red;
-  tSensorOutput<bool> so_led_online_yellow;
-  tSensorOutput<bool> so_led_online_green;
+  tSensorOutput<rrlib::si_units::tCelsius<double>> so_temperature_boiler_top;
+  tSensorOutput<rrlib::si_units::tCelsius<double>> so_temperature_boiler_middle;
+  tSensorOutput<rrlib::si_units::tCelsius<double>> so_temperature_boiler_bottom;
+  tSensorOutput<rrlib::si_units::tCelsius<double>> so_temperature_ground;
+  tSensorOutput<rrlib::si_units::tCelsius<double>> so_temperature_solar;
+  tSensorOutput<rrlib::si_units::tCelsius<double>> so_temperature_furnace;
+  tSensorOutput<rrlib::si_units::tCelsius<double>> so_temperature_room;
+  tSensorOutput<rrlib::si_units::tCelsius<double>> so_temperature_garage;
 
-  tSensorOutput<bool> so_pump_online_solar;
-  tSensorOutput<bool> so_pump_online_room;
-  tSensorOutput<bool> so_pump_online_ground;
+  tSensorOutput<bool> so_led_red;
+  tSensorOutput<bool> so_led_yellow;
+  tSensorOutput<bool> so_led_green;
+
+  tSensorOutput<bool> so_pump_solar;
+  tSensorOutput<bool> so_pump_room;
+  tSensorOutput<bool> so_pump_ground;
 
   tControllerOutput<heat_control_states::tCurrentState> co_heating_state;
   tControllerOutput<tControlModeType> co_control_mode;
