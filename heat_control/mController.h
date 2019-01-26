@@ -128,6 +128,7 @@ public:
 
 
   tParameter<rrlib::si_units::tCelsius<double>> par_temperature_set_point_room;
+  tParameter<rrlib::time::tDuration> par_max_update_duration;
 
 //----------------------------------------------------------------------
 // Public methods and typedefs

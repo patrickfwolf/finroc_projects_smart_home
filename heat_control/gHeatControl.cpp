@@ -241,7 +241,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   pt100_garage->par_supply_voltage.Set(5.0);
   pt100_garage->in_voltage.ConnectTo(mcp_3008->out_voltage.at(tMCP3008Output::ePT100_GARAGE));
 
-  auto filter_garage = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT100 Furnace Filter");
+  auto filter_garage = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT100 Garage Filter");
   filter_garage->par_number_of_ports.Set(1);
   filter_garage->Init();
   filter_garage->par_weight.Set(0.0025);

@@ -62,8 +62,10 @@ static runtime_construction::tStandardCreateModuleAction<mController> cCREATE_AC
 // mController constructor
 //----------------------------------------------------------------------
 mController::mController(core::tFrameworkElement *parent, const std::string &name) :
-  tSenseControlModule(parent, name, false), // change to 'true' to make module's ports shared (so that ports in other processes can connect to its sensor outputs and controller inputs)
+  tSenseControlModule(parent, name, false),
   ci_control_mode(tControlModeType::eAUTOMATIC),
+  par_temperature_set_point_room("Temperature Set Point Room", this, rrlib::si_units::tCelsius<double>(23.0), "temperature_set_point_room"),
+  par_max_update_duration("Max Update Duration", this, std::chrono::seconds(10), "max_update_duration"),
   control_state_(nullptr),
   set_point_(23.0),
   error_(tErrorState::eNO_ERROR)
@@ -95,20 +97,27 @@ void mController::OnParameterChange()
 //----------------------------------------------------------------------
 void mController::Sense()
 {
+  auto current_time = rrlib::time::Now();
+  // TODO check time stamps
+
   if (this->SensorInputChanged())
   {
-
     // pump control
     std::unique_ptr<heat_control_states::tState> next_state;
 
-    // TODO check time stamps
-    // TODO consider external temperature
     // TODO check plausibility of temperatures
+
+    auto temperature_room = si_temperature_room.Get();
+    if(current_time - si_temperature_room_external.GetTimestamp() < par_max_update_duration.Get())
+    {
+      temperature_room += si_temperature_room_external.Get();
+      temperature_room /= 2.0;
+    }
 
     shared::tTemperatures temperatures
     {
       si_temperature_boiler_middle.Get(),
-      si_temperature_room.Get(),
+      temperature_room,
       si_temperature_solar.Get(),
       si_temperature_ground.Get(),
       set_point_
