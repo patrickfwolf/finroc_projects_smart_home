@@ -101,11 +101,11 @@ void mController::Sense()
   // TODO check time stamps
 
   bool outdated_temperature = false;
+  bool implausible_temperature = false;
 
   if (this->SensorInputChanged())
   {
     // check plausibility of temperatures
-    bool implausible_temperature = false;
     implausible_temperature = implausible_temperature or
                               IsTemperatureInBounds(si_temperature_room.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
     implausible_temperature = implausible_temperature or
@@ -125,31 +125,6 @@ void mController::Sense()
     implausible_temperature = implausible_temperature or
                               IsTemperatureInBounds(si_temperature_boiler_middle.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
 
-    // determine error state
-    if (implausible_temperature)
-    {
-      if(outdated_temperature)
-      {
-    	  this->error_ = tErrorState::eIMPLAUSIBLE_OUTDATED_TEMPERATURE;
-      }
-      else
-      {
-    	  this->error_ = tErrorState::eIMPLAUSIBLE_TEMPERATURE;
-      }
-    }
-    else
-    {
-        if(outdated_temperature)
-    	{
-        	this->error_ = tErrorState::eOUTDATED_TEMPERATURE;
-    	}
-        else
-        {
-        	this->error_ = tErrorState::eNO_ERROR;
-        }
-    }
-    this->co_error_state.Publish(error_, current_time);
-
     // integrate external room temperature if value is available
     auto temperature_room = si_temperature_room.Get();
     if (current_time - si_temperature_room_external.GetTimestamp() < par_max_update_duration.Get())
@@ -166,9 +141,32 @@ void mController::Sense()
       si_temperature_ground.Get(),
       set_point_
     };
-
-
   }
+
+  // determine error state
+  if (implausible_temperature)
+  {
+    if (outdated_temperature)
+    {
+      this->error_ = tErrorState::eIMPLAUSIBLE_OUTDATED_TEMPERATURE;
+    }
+    else
+    {
+      this->error_ = tErrorState::eIMPLAUSIBLE_TEMPERATURE;
+    }
+  }
+  else
+  {
+    if (outdated_temperature)
+    {
+      this->error_ = tErrorState::eOUTDATED_TEMPERATURE;
+    }
+    else
+    {
+      this->error_ = tErrorState::eNO_ERROR;
+    }
+  }
+  this->co_error_state.Publish(error_, current_time);
 }
 
 //----------------------------------------------------------------------
@@ -177,7 +175,7 @@ void mController::Sense()
 void mController::Control()
 {
   // error handling
-  if (this->error_ != tErrorState::eNO_ERROR)
+  if (this->error_ != tErrorState::eNO_ERROR and not ci_control_mode.Get() == tControlModeType::eMANUAL)
   {
     co_pump_online_ground.Publish(false);
     co_pump_online_room.Publish(false);
