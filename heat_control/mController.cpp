@@ -100,6 +100,8 @@ void mController::Sense()
   auto current_time = rrlib::time::Now();
   // TODO check time stamps
 
+  bool outdated_temperature = false;
+
   if (this->SensorInputChanged())
   {
     // check plausibility of temperatures
@@ -122,10 +124,31 @@ void mController::Sense()
                               IsTemperatureInBounds(si_temperature_boiler_top.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
     implausible_temperature = implausible_temperature or
                               IsTemperatureInBounds(si_temperature_boiler_middle.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
+
+    // determine error state
     if (implausible_temperature)
     {
-      this->error_ = tErrorState::eIMPLAUSIBLE_TEMPERATURE;
+      if(outdated_temperature)
+      {
+    	  this->error_ = tErrorState::eIMPLAUSIBLE_OUTDATED_TEMPERATURE;
+      }
+      else
+      {
+    	  this->error_ = tErrorState::eIMPLAUSIBLE_TEMPERATURE;
+      }
     }
+    else
+    {
+        if(outdated_temperature)
+    	{
+        	this->error_ = tErrorState::eOUTDATED_TEMPERATURE;
+    	}
+        else
+        {
+        	this->error_ = tErrorState::eNO_ERROR;
+        }
+    }
+    this->co_error_state.Publish(error_, current_time);
 
     // integrate external room temperature if value is available
     auto temperature_room = si_temperature_room.Get();
@@ -195,7 +218,7 @@ void mController::Control()
 
   // determine state
   bool state_changed = false;
-  if (ci_control_mode.Get() != tControlModeType::eMANUAL or ci_control_mode.Get() != tControlModeType::eMANUAL)
+  if (ci_control_mode.Get() != tControlModeType::eMANUAL or ci_control_mode.Get() != tControlModeType::eSTOP)
   {
     std::unique_ptr<heat_control_states::tState> next_state;
     control_state_->ComputeControlState(next_state, temperatures_);

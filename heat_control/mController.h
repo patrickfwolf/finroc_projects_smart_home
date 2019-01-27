@@ -73,7 +73,8 @@ enum class tErrorState
 {
   eNO_ERROR,
   eOUTDATED_TEMPERATURE,
-  eIMPLAUSIBLE_TEMPERATURE
+  eIMPLAUSIBLE_TEMPERATURE,
+  eIMPLAUSIBLE_OUTDATED_TEMPERATURE
 };
 
 //----------------------------------------------------------------------
