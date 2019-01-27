@@ -101,25 +101,22 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   ci_disable_pump_ground(false)
 {
   auto controller = new mController(this, "Controller");
-  controller->par_temperature_set_point_room.Set(23);
+  controller->par_temperature_set_point_room.Set(23.0);
   this->si_temperature_room_external.ConnectTo(controller->si_temperature_room_external);
   this->ci_control_mode.ConnectTo(controller->ci_control_mode);
-
   this->ci_manual_pump_ground.ConnectTo(controller->ci_manual_pump_online_ground);
   this->ci_manual_pump_room.ConnectTo(controller->ci_manual_pump_online_room);
   this->ci_manual_pump_solar.ConnectTo(controller->ci_manual_pump_online_solar);
   this->ci_disable_pump_ground.ConnectTo(controller->ci_disable_pump_ground);
   this->ci_disable_pump_room.ConnectTo(controller->ci_disable_pump_room);
-
+  this->co_control_mode.ConnectTo(controller->co_control_mode);
+  this->co_heating_state.ConnectTo(controller->co_heating_state);
   this->so_led_green.ConnectTo(controller->co_led_online_green);
   this->so_led_yellow.ConnectTo(controller->co_led_online_yellow);
   this->so_led_red.ConnectTo(controller->co_led_online_red);
   this->so_pump_ground.ConnectTo(controller->co_pump_online_ground);
   this->so_pump_room.ConnectTo(controller->co_pump_online_room);
   this->so_pump_solar.ConnectTo(controller->co_pump_online_solar);
-
-  this->co_control_mode.ConnectTo(controller->co_control_mode);
-  this->co_heating_state.ConnectTo(controller->co_heating_state);
 
 #ifdef _LIB_WIRING_PI_PRESENT_
   auto gpio_interface = new finroc::gpio_raspberry_pi::mRaspberryIO(this, "Raspberry Pi GPIO Interface");
@@ -137,13 +134,13 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
 
   auto mcp_3008 = new shared::mMCP3008<tMCP3008Output::eCOUNT>(this, "MCP3008");
   mcp_3008->par_reference_voltage.Set(5.0);
-  mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT1000_GROUND).ConnectTo("Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Ground");
-  mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT1000_BOILER_MIDDLE).ConnectTo("Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Boiler Middle");
-  mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT1000_ROOM).ConnectTo("Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Room");
   mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT1000_SOLAR).ConnectTo("Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Solar");
-  mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT100_FURNACE).ConnectTo("Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Furnace");
-  mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT100_BOILER_BOTTOM).ConnectTo("Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Boiler Bottom");
+  mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT1000_ROOM).ConnectTo("Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Room");
+  mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT1000_BOILER_MIDDLE).ConnectTo("Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Boiler Middle");
+  mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT1000_GROUND).ConnectTo("Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Ground");
   mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT100_BOILER_TOP).ConnectTo("Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Boiler Top");
+  mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT100_BOILER_BOTTOM).ConnectTo("Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Boiler Bottom");
+  mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT100_FURNACE).ConnectTo("Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Furnace");
   mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT100_GARAGE).ConnectTo("Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Garage");
 
   auto pt1000_room = new shared::mPT1000(this, "PT1000 Room");
@@ -155,7 +152,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   auto filter_room = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT1000 Room Filter");
   filter_room->par_number_of_ports.Set(1);
   filter_room->Init();
-  filter_room->par_weight.Set(0.00035);
+  filter_room->par_weight.Set(0.01);
   filter_room->par_initial_value.Set(rrlib::si_units::tCelsius<double>(20.0));
   filter_room->in_input_values.at(0).ConnectTo(pt1000_room->out_temperature);
   filter_room->out_filtered_values.at(0).ConnectTo(controller->si_temperature_room);
@@ -169,7 +166,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   auto filter_boiler_middle = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT1000 Boiler Middle Filter");
   filter_boiler_middle->par_number_of_ports.Set(1);
   filter_boiler_middle->Init();
-  filter_boiler_middle->par_weight.Set(0.0025);
+  filter_boiler_middle->par_weight.Set(0.1);
   filter_boiler_middle->par_initial_value.Set(rrlib::si_units::tCelsius<double>(20.0));
   filter_boiler_middle->in_input_values.at(0).ConnectTo(pt1000_boiler_middle->out_temperature);
   filter_boiler_middle->out_filtered_values.at(0).ConnectTo(controller->si_temperature_boiler_middle);
@@ -180,7 +177,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   pt100_boiler_bottom->par_supply_voltage.Set(5.0);
   pt100_boiler_bottom->in_voltage.ConnectTo(mcp_3008->out_voltage.at(tMCP3008Output::ePT100_BOILER_BOTTOM));
 
-  auto filter_boiler_bottom = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT100 Boiler Ground Filter");
+  auto filter_boiler_bottom = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT100 Boiler Bottom Filter");
   filter_boiler_bottom->par_number_of_ports.Set(1);
   filter_boiler_bottom->Init();
   filter_boiler_bottom->par_weight.Set(0.1);
@@ -197,7 +194,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   auto filter_boiler_top = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT100 Boiler Top Filter");
   filter_boiler_top->par_number_of_ports.Set(1);
   filter_boiler_top->Init();
-  filter_boiler_top->par_weight.Set(0.0025);
+  filter_boiler_top->par_weight.Set(0.1);
   filter_boiler_top->par_initial_value.Set(rrlib::si_units::tCelsius<double>(20.0));
   filter_boiler_top->in_input_values.at(0).ConnectTo(pt100_boiler_top->out_temperature);
   filter_boiler_top->out_filtered_values.at(0).ConnectTo(controller->si_temperature_boiler_top);
@@ -211,7 +208,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   auto filter_solar = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT1000 Solar Filter");
   filter_solar->par_number_of_ports.Set(1);
   filter_solar->Init();
-  filter_solar->par_weight.Set(0.0025);
+  filter_solar->par_weight.Set(0.1);
   filter_solar->par_initial_value.Set(rrlib::si_units::tCelsius<double>(20.0));
   filter_solar->in_input_values.at(0).ConnectTo(pt1000_solar->out_temperature);
   filter_solar->out_filtered_values.at(0).ConnectTo(controller->si_temperature_solar);
@@ -225,7 +222,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   auto filter_ground = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT1000 Ground Filter");
   filter_ground->par_number_of_ports.Set(1);
   filter_ground->Init();
-  filter_ground->par_weight.Set(0.0025);
+  filter_ground->par_weight.Set(0.1);
   filter_ground->par_initial_value.Set(rrlib::si_units::tCelsius<double>(20.0));
   filter_ground->in_input_values.at(0).ConnectTo(pt1000_ground->out_temperature);
   filter_ground->out_filtered_values.at(0).ConnectTo(controller->si_temperature_ground);
@@ -239,7 +236,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   auto filter_furnace = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT100 Furnace Filter");
   filter_furnace->par_number_of_ports.Set(1);
   filter_furnace->Init();
-  filter_furnace->par_weight.Set(0.0025);
+  filter_furnace->par_weight.Set(0.1);
   filter_furnace->par_initial_value.Set(rrlib::si_units::tCelsius<double>(20.0));
   filter_furnace->in_input_values.at(0).ConnectTo(pt100_furnace->out_temperature);
   filter_furnace->out_filtered_values.at(0).ConnectTo(controller->si_temperature_furnace);
@@ -253,7 +250,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   auto filter_garage = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT100 Garage Filter");
   filter_garage->par_number_of_ports.Set(1);
   filter_garage->Init();
-  filter_garage->par_weight.Set(0.0025);
+  filter_garage->par_weight.Set(0.1);
   filter_garage->par_initial_value.Set(rrlib::si_units::tCelsius<double>(20.0));
   filter_garage->in_input_values.at(0).ConnectTo(pt100_garage->out_temperature);
   filter_garage->out_filtered_values.at(0).ConnectTo(controller->si_temperature_garage);
