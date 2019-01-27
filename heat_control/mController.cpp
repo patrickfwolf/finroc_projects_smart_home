@@ -175,7 +175,7 @@ void mController::Sense()
 void mController::Control()
 {
   // error handling
-  if (this->error_ != tErrorState::eNO_ERROR and not ci_control_mode.Get() == tControlModeType::eMANUAL)
+  if ((this->error_ != tErrorState::eNO_ERROR) and not (ci_control_mode.Get() == tControlModeType::eMANUAL))
   {
     co_pump_online_ground.Publish(false);
     co_pump_online_room.Publish(false);
