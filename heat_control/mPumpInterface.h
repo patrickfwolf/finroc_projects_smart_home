@@ -113,10 +113,6 @@ private:
 
   virtual void Update() override;
 
-  bool pump_boden_online_;
-  bool pump_raum_online_;
-  bool pump_solar_online_;
-
 };
 
 //----------------------------------------------------------------------

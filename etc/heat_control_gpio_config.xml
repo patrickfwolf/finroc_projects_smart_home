@@ -2,12 +2,16 @@
 <raspberry_io_config>
   <!-- MCP3008 -->
   <port pin="0" type="analog" direction="input" name="Mcp3008 Ad Voltage Solar"/>
-  <port pin="1" type="analog" direction="input" name="Mcp3008 Ad Voltage Raum"/>
-  <port pin="2" type="analog" direction="input" name="Mcp3008 Ad Voltage Speicher"/>
-  <port pin="3" type="analog" direction="input" name="Mcp3008 Ad Voltage Boden"/>
+  <port pin="1" type="analog" direction="input" name="Mcp3008 Ad Voltage Room"/>
+  <port pin="2" type="analog" direction="input" name="Mcp3008 Ad Voltage Boiler Middle"/>
+  <port pin="3" type="analog" direction="input" name="Mcp3008 Ad Voltage Ground"/>
+  <port pin="4" type="analog" direction="input" name="Mcp3008 Ad Voltage Boiler Top"/>
+  <port pin="5" type="analog" direction="input" name="Mcp3008 Ad Voltage Boiler Bottom"/>
+  <port pin="6" type="analog" direction="input" name="Mcp3008 Ad Voltage Furnace"/>
+  <port pin="7" type="analog" direction="input" name="Mcp3008 Ad Voltage Garage"/>
   
   <!-- Pumps -->  
   <port pin="8" type="digital" direction="output" name="Gpio Pump Online Solar"/>
-  <port pin="9" type="digital" direction="output" name="Gpio Pump Online Boden"/>
-  <port pin="0" type="digital" direction="output" name="Gpio Pump Online Raum"/>
+  <port pin="9" type="digital" direction="output" name="Gpio Pump Online Ground"/>
+  <port pin="0" type="digital" direction="output" name="Gpio Pump Online Room"/>
 </raspberry_io_config>
