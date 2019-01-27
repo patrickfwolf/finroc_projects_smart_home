@@ -93,6 +93,17 @@ class tTemperatures
 public:
 
   /*!
+   * Default constructor
+   */
+  tTemperatures():
+    boiler_(0.0),
+    room_(0.0),
+    solar_(0.0),
+    ground_(0.0),
+    room_set_point_(20.0)
+  {}
+
+  /*!
    * Constructor
    * @param boiler Temperature of heat storage buffer
    * @param room Temperature of living area

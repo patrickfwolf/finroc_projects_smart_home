@@ -119,10 +119,10 @@ protected:
     const rrlib::si_units::tVoltage<double> & reference_voltage,
     const rrlib::si_units::tElectricResistance<double> & pre_resistance) const
   {
-	if(voltage.Value() == 0)
-	{
-	  return pre_resistance;
-	}
+    if (voltage.Value() == 0)
+    {
+      return pre_resistance;
+    }
 
     return pre_resistance * ((reference_voltage / voltage).Value() - 1.0);
   }
@@ -134,9 +134,9 @@ private:
 
   inline virtual void Update() override
   {
-      auto resistance =  GetResistance(in_voltage.Get(), par_reference_voltage.Get(), par_pre_resistance.Get());
+    auto resistance =  GetResistance(in_voltage.Get(), par_reference_voltage.Get(), par_pre_resistance.Get());
 
-      out_resistance.Publish(resistance, in_voltage.GetTimestamp());
+    out_resistance.Publish(resistance, in_voltage.GetTimestamp());
   }
 };
 

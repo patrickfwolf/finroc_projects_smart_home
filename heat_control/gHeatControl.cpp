@@ -68,15 +68,15 @@ namespace heat_control
 //----------------------------------------------------------------------
 enum tMCP3008Output
 {
-	ePT1000_SOLAR = 0,
-	ePT1000_ROOM,
-	ePT1000_BOILER_MIDDLE,
-	ePT1000_GROUND,
-	ePT100_BOILER_TOP,
-	ePT100_BOILER_BOTTOM,
-	ePT100_FURNACE,
-	ePT100_GARAGE,
-	eCOUNT
+  ePT1000_SOLAR = 0,
+  ePT1000_ROOM,
+  ePT1000_BOILER_MIDDLE,
+  ePT1000_GROUND,
+  ePT100_BOILER_TOP,
+  ePT100_BOILER_BOTTOM,
+  ePT100_FURNACE,
+  ePT100_GARAGE,
+  eCOUNT
 };
 //----------------------------------------------------------------------
 // Const values

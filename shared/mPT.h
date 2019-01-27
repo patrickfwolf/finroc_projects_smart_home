@@ -150,10 +150,10 @@ private:
      * V_supply / V_ref = R_pre + R_pt / R_pre
      *
      */
-	if(voltage.Value() == 0)
-	{
-	  return pre_resistance;
-	}
+    if (voltage.Value() == 0)
+    {
+      return pre_resistance;
+    }
 
     return pre_resistance * ((reference_voltage / voltage).Value() - 1.0);
   }

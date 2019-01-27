@@ -119,7 +119,7 @@ public:
   mBMP180(core::tFrameworkElement *parent, const std::string &name = "BMP180") :
     tModule(parent, name),
     par_operation_mode(tBMP180OSSMode::tBMP180_OSS_STANDARD),
-	par_pressure_sea_level(101325.0)
+    par_pressure_sea_level(101325.0)
 #ifdef _LIB_WIRING_PI_PRESENT_
     , i2c_device_(cBMP180_I2C_ADDRESS)
 #endif
@@ -214,17 +214,17 @@ private:
       std::this_thread::sleep_for(std::chrono::microseconds(25500));
       break;
     default:
-        std::this_thread::sleep_for(std::chrono::microseconds(25500));
+      std::this_thread::sleep_for(std::chrono::microseconds(25500));
     };
     int32_t raw_pressure = ((i2c_device_.ReadByte(cBMP180_OUT_MSB) << 16) +
-    		(i2c_device_.ReadByte(cBMP180_OUT_LSB) << 8) +
-			i2c_device_.ReadByte(cBMP180_OUT_XLSB)) >> (8 - par_operation_mode.Get());
+                            (i2c_device_.ReadByte(cBMP180_OUT_LSB) << 8) +
+                            i2c_device_.ReadByte(cBMP180_OUT_XLSB)) >> (8 - par_operation_mode.Get());
     auto pressure_time = rrlib::time::Now();
     out_raw_pressure.Publish(raw_pressure, pressure_time);
 
     // compute temperature
     int32_t x1 = (raw_temperature - ac6_) * ac5_ / std::pow(2, 15);
-    int32_t x2 = mc_ * std::pow(2,11) / (x1 + md_);
+    int32_t x2 = mc_ * std::pow(2, 11) / (x1 + md_);
     int32_t b5 = x1 + x2;
     int32_t temperature = (b5 + 8) / 16;
     RRLIB_LOG_PRINT(DEBUG_VERBOSE_1, "x1: ", x1, " x2: ", x2, " b5: ", b5);

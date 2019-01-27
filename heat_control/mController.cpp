@@ -85,11 +85,11 @@ mController::~mController()
 //----------------------------------------------------------------------
 void mController::OnParameterChange()
 {
-	if(par_temperature_set_point_room.HasChanged())
-	{
-		this->set_point_ = par_temperature_set_point_room.Get();
-		co_set_point_temperature.Publish(set_point_, rrlib::time::Now());
-	}
+  if (par_temperature_set_point_room.HasChanged())
+  {
+    this->set_point_ = par_temperature_set_point_room.Get();
+    co_set_point_temperature.Publish(set_point_, rrlib::time::Now());
+  }
 }
 
 //----------------------------------------------------------------------
@@ -102,19 +102,40 @@ void mController::Sense()
 
   if (this->SensorInputChanged())
   {
-    // pump control
-    std::unique_ptr<heat_control_states::tState> next_state;
+    // check plausibility of temperatures
+    bool implausible_temperature = false;
+    implausible_temperature = implausible_temperature or
+                              IsTemperatureInBounds(si_temperature_room.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible_temperature = implausible_temperature or
+                              IsTemperatureInBounds(si_temperature_room_external.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible_temperature = implausible_temperature or
+                              IsTemperatureInBounds(si_temperature_solar.Get(), rrlib::si_units::tCelsius<double>(150.0), rrlib::si_units::tCelsius<double>(-40.0));
+    implausible_temperature = implausible_temperature or
+                              IsTemperatureInBounds(si_temperature_ground.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible_temperature = implausible_temperature or
+                              IsTemperatureInBounds(si_temperature_garage.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible_temperature = implausible_temperature or
+                              IsTemperatureInBounds(si_temperature_furnace.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible_temperature = implausible_temperature or
+                              IsTemperatureInBounds(si_temperature_boiler_bottom.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible_temperature = implausible_temperature or
+                              IsTemperatureInBounds(si_temperature_boiler_top.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible_temperature = implausible_temperature or
+                              IsTemperatureInBounds(si_temperature_boiler_middle.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
+    if (implausible_temperature)
+    {
+      this->error_ = tErrorState::eIMPLAUSIBLE_TEMPERATURE;
+    }
 
-    // TODO check plausibility of temperatures
-
+    // integrate external room temperature if value is available
     auto temperature_room = si_temperature_room.Get();
-    if(current_time - si_temperature_room_external.GetTimestamp() < par_max_update_duration.Get())
+    if (current_time - si_temperature_room_external.GetTimestamp() < par_max_update_duration.Get())
     {
       temperature_room += si_temperature_room_external.Get();
       temperature_room /= 2.0;
     }
 
-    shared::tTemperatures temperatures
+    temperatures_ = shared::tTemperatures
     {
       si_temperature_boiler_middle.Get(),
       temperature_room,
@@ -122,46 +143,8 @@ void mController::Sense()
       si_temperature_ground.Get(),
       set_point_
     };
-    control_state_->ComputeControlState(next_state, temperatures);
-    if (control_state_->HasChanged())
-    {
-      control_state_ = std::move(next_state);
-    }
 
-    co_heating_state.Publish(control_state_->GetCurrentState());
 
-    // led control
-    auto boiler = si_temperature_boiler_middle.Get();
-    if (boiler <= rrlib::si_units::tCelsius<double>(25.0))
-    {
-      co_led_online_green.Publish(false);
-      co_led_online_yellow.Publish(false);
-      co_led_online_red.Publish(true);
-    }
-    else if (boiler > rrlib::si_units::tCelsius<double>(25.0) && boiler <= rrlib::si_units::tCelsius<double>(30.0))
-    {
-      co_led_online_green.Publish(false);
-      co_led_online_yellow.Publish(true);
-      co_led_online_red.Publish(true);
-    }
-    else if (boiler > rrlib::si_units::tCelsius<double>(30.0) && boiler <= rrlib::si_units::tCelsius<double>(40.0))
-    {
-      co_led_online_green.Publish(false);
-      co_led_online_yellow.Publish(true);
-      co_led_online_red.Publish(false);
-    }
-    else if (boiler > rrlib::si_units::tCelsius<double>(40.0) && boiler <= rrlib::si_units::tCelsius<double>(45.0))
-    {
-      co_led_online_green.Publish(true);
-      co_led_online_yellow.Publish(true);
-      co_led_online_red.Publish(false);
-    }
-    else if (boiler > rrlib::si_units::tCelsius<double>(45.0))
-    {
-      co_led_online_green.Publish(true);
-      co_led_online_yellow.Publish(false);
-      co_led_online_red.Publish(false);
-    }
   }
 }
 
@@ -170,6 +153,14 @@ void mController::Sense()
 //----------------------------------------------------------------------
 void mController::Control()
 {
+  // error handling
+  if (this->error_ != tErrorState::eNO_ERROR)
+  {
+    co_pump_online_ground.Publish(false);
+    co_pump_online_room.Publish(false);
+    co_pump_online_solar.Publish(false);
+    return;
+  }
 
   // reset if control mode changes
   if (ci_control_mode.HasChanged())
@@ -182,24 +173,38 @@ void mController::Control()
       control_state_ = std::unique_ptr<heat_control_states::tState>(new heat_control_states::tReady());
     }
 
-    co_control_mode.Publish(ci_control_mode.Get());
+    co_control_mode.Publish(ci_control_mode.Get(), ci_control_mode.GetTimestamp());
   }
 
-  // set point
-  if(ci_increase_set_point_temperature.HasChanged())
+  // handle set point
+  if (ci_increase_set_point_temperature.HasChanged())
   {
-	set_point_ += rrlib::si_units::tCelsius<double>(0.5);
-	co_set_point_temperature.Publish(set_point_, ci_increase_set_point_temperature.GetTimestamp());
+    set_point_ += rrlib::si_units::tCelsius<double>(0.5);
+    co_set_point_temperature.Publish(set_point_, ci_increase_set_point_temperature.GetTimestamp());
   }
-  if(ci_decrease_set_point_temperature.HasChanged())
+  if (ci_decrease_set_point_temperature.HasChanged())
   {
     set_point_ -= rrlib::si_units::tCelsius<double>(0.5);
     co_set_point_temperature.Publish(set_point_, ci_decrease_set_point_temperature.GetTimestamp());
   }
-  if(ci_reset_set_point_temperature.HasChanged())
+  if (ci_reset_set_point_temperature.HasChanged())
   {
     set_point_ = par_temperature_set_point_room.Get();
     co_set_point_temperature.Publish(set_point_, ci_reset_set_point_temperature.GetTimestamp());
+  }
+
+  // determine state
+  bool state_changed = false;
+  if (ci_control_mode.Get() != tControlModeType::eMANUAL or ci_control_mode.Get() != tControlModeType::eMANUAL)
+  {
+    std::unique_ptr<heat_control_states::tState> next_state;
+    control_state_->ComputeControlState(next_state, temperatures_);
+    state_changed = control_state_->HasChanged();
+    if (state_changed)
+    {
+      control_state_ = std::move(next_state);
+      co_heating_state.Publish(control_state_->GetCurrentState(), rrlib::time::Now());
+    }
   }
 
   // control mode
@@ -207,27 +212,31 @@ void mController::Control()
   {
   case tControlModeType::eAUTOMATIC:
   {
-    auto pumps = control_state_->GetPumpSettings();
+    if (state_changed)
+    {
+      // get pump settings
+      auto pumps = control_state_->GetPumpSettings();
 
-    // check if pump values are manually disabled
-    if (ci_disable_pump_ground.Get())
-    {
-      co_pump_online_ground.Publish(false);
+      // check if pump values are manually disabled
+      if (ci_disable_pump_ground.Get())
+      {
+        co_pump_online_ground.Publish(false);
+      }
+      else
+      {
+        co_pump_online_ground.Publish(pumps.IsGroundOnline());
+      }
+      if (ci_disable_pump_room.Get())
+      {
+        co_pump_online_room.Publish(false);
+      }
+      else
+      {
+        co_pump_online_room.Publish(pumps.IsRoomOnline());
+      }
+      // solar pump is never disabled
+      co_pump_online_solar.Publish(pumps.IsSolarOnline());
     }
-    else
-    {
-      co_pump_online_ground.Publish(pumps.IsGroundOnline());
-    }
-    if (ci_disable_pump_room.Get())
-    {
-      co_pump_online_room.Publish(false);
-    }
-    else
-    {
-      co_pump_online_room.Publish(pumps.IsRoomOnline());
-    }
-    // solar pump is never disabled
-    co_pump_online_solar.Publish(pumps.IsSolarOnline());
   }
   break;
   case tControlModeType::eSTOP:
@@ -254,25 +263,31 @@ void mController::Control()
     break;
   case tControlModeType::eAUTOMATIC_NO_ROOM:
   {
-    auto pumps = control_state_->GetPumpSettings();
-    if (ci_disable_pump_room.Get())
+    if (state_changed)
     {
-      co_pump_online_room.Publish(false);
+      auto pumps = control_state_->GetPumpSettings();
+      if (ci_disable_pump_room.Get())
+      {
+        co_pump_online_room.Publish(false);
+      }
+      else
+      {
+        co_pump_online_room.Publish(pumps.IsRoomOnline());
+      }
+      co_pump_online_ground.Publish(false);
+      co_pump_online_solar.Publish(pumps.IsSolarOnline());
     }
-    else
-    {
-      co_pump_online_room.Publish(pumps.IsRoomOnline());
-    }
-    co_pump_online_ground.Publish(false);
-    co_pump_online_solar.Publish(pumps.IsSolarOnline());
   }
   break;
   case tControlModeType::eAUTOMATIC_SOLAR_ONLY:
   {
-    auto pumps = control_state_->GetPumpSettings();
-    co_pump_online_room.Publish(false);
-    co_pump_online_ground.Publish(false);
-    co_pump_online_solar.Publish(pumps.IsSolarOnline());
+    if (state_changed)
+    {
+      auto pumps = control_state_->GetPumpSettings();
+      co_pump_online_room.Publish(false);
+      co_pump_online_ground.Publish(false);
+      co_pump_online_solar.Publish(pumps.IsSolarOnline());
+    }
   }
   break;
   default:
@@ -280,6 +295,39 @@ void mController::Control()
     co_pump_online_room.Publish(false);
     co_pump_online_solar.Publish(false);
   };
+
+  // led control
+  auto boiler = si_temperature_boiler_middle.Get();
+  if (boiler <= rrlib::si_units::tCelsius<double>(25.0))
+  {
+    co_led_online_green.Publish(false);
+    co_led_online_yellow.Publish(false);
+    co_led_online_red.Publish(true);
+  }
+  else if (boiler > rrlib::si_units::tCelsius<double>(25.0) && boiler <= rrlib::si_units::tCelsius<double>(30.0))
+  {
+    co_led_online_green.Publish(false);
+    co_led_online_yellow.Publish(true);
+    co_led_online_red.Publish(true);
+  }
+  else if (boiler > rrlib::si_units::tCelsius<double>(30.0) && boiler <= rrlib::si_units::tCelsius<double>(40.0))
+  {
+    co_led_online_green.Publish(false);
+    co_led_online_yellow.Publish(true);
+    co_led_online_red.Publish(false);
+  }
+  else if (boiler > rrlib::si_units::tCelsius<double>(40.0) && boiler <= rrlib::si_units::tCelsius<double>(45.0))
+  {
+    co_led_online_green.Publish(true);
+    co_led_online_yellow.Publish(true);
+    co_led_online_red.Publish(false);
+  }
+  else if (boiler > rrlib::si_units::tCelsius<double>(45.0))
+  {
+    co_led_online_green.Publish(true);
+    co_led_online_yellow.Publish(false);
+    co_led_online_red.Publish(false);
+  }
 
 }
 

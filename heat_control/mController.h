@@ -160,9 +160,21 @@ private:
 
   virtual void OnParameterChange() override;
 
+  /*!
+   * Checks if a temperature value is within bounds
+   * @return within bounds
+   */
+  bool IsTemperatureInBounds(const rrlib::si_units::tCelsius<double> & temperature,
+                             const rrlib::si_units::tCelsius<double> & upper_bound,
+                             const rrlib::si_units::tCelsius<double> & lower_bound) const
+  {
+    return (temperature < upper_bound) and (temperature > lower_bound);
+  }
+
   std::unique_ptr<heat_control_states::tState> control_state_;
   rrlib::si_units::tCelsius<double> set_point_;
   tErrorState error_;
+  shared::tTemperatures temperatures_;
 
 };
 
