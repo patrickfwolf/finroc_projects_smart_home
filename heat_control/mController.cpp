@@ -62,7 +62,7 @@ static runtime_construction::tStandardCreateModuleAction<mController> cCREATE_AC
 // mController constructor
 //----------------------------------------------------------------------
 mController::mController(core::tFrameworkElement *parent, const std::string &name) :
-  tSenseControlModule(parent, name, false),
+  tSenseControlModule(parent, name, true),
   ci_control_mode(tControlModeType::eAUTOMATIC),
   par_temperature_set_point_room("Temperature Set Point Room", this, rrlib::si_units::tCelsius<double>(23.0), "temperature_set_point_room"),
   par_max_update_duration("Max Update Duration", this, std::chrono::seconds(10), "max_update_duration"),
@@ -106,28 +106,46 @@ void mController::Sense()
   if (this->SensorInputChanged())
   {
     // check plausibility of temperatures
-    implausible_temperature = implausible_temperature or
-                              IsTemperatureInBounds(si_temperature_room.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
-    implausible_temperature = implausible_temperature or
-                              IsTemperatureInBounds(si_temperature_room_external.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
-    implausible_temperature = implausible_temperature or
-                              IsTemperatureInBounds(si_temperature_solar.Get(), rrlib::si_units::tCelsius<double>(150.0), rrlib::si_units::tCelsius<double>(-40.0));
-    implausible_temperature = implausible_temperature or
-                              IsTemperatureInBounds(si_temperature_ground.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
-    implausible_temperature = implausible_temperature or
-                              IsTemperatureInBounds(si_temperature_garage.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
-    implausible_temperature = implausible_temperature or
-                              IsTemperatureInBounds(si_temperature_furnace.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
-    implausible_temperature = implausible_temperature or
-                              IsTemperatureInBounds(si_temperature_boiler_bottom.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
-    implausible_temperature = implausible_temperature or
-                              IsTemperatureInBounds(si_temperature_boiler_top.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
-    implausible_temperature = implausible_temperature or
-                              IsTemperatureInBounds(si_temperature_boiler_middle.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
+    bool implausible = false;
+    implausible = IsTemperatureInBounds(si_temperature_room.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible_temperature = implausible_temperature or implausible;
+    so_implausible_temperature_room.Publish(implausible, current_time);
+
+    implausible = IsTemperatureInBounds(si_temperature_solar.Get(), rrlib::si_units::tCelsius<double>(150.0), rrlib::si_units::tCelsius<double>(-40.0));
+    implausible_temperature = implausible_temperature or implausible;
+    so_implausible_temperature_solar.Publish(implausible, current_time);
+
+    implausible = IsTemperatureInBounds(si_temperature_ground.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible_temperature = implausible_temperature or implausible;
+    so_implausible_temperature_ground.Publish(implausible, current_time);
+
+    implausible = IsTemperatureInBounds(si_temperature_garage.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible_temperature = implausible_temperature or implausible;
+    so_implausible_temperature_garage.Publish(implausible, current_time);
+
+    implausible = IsTemperatureInBounds(si_temperature_furnace.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible_temperature = implausible_temperature or implausible;
+    so_implausible_temperature_furnace.Publish(implausible, current_time);
+
+    implausible = IsTemperatureInBounds(si_temperature_boiler_bottom.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible_temperature = implausible_temperature or implausible;
+    so_implausible_temperature_boiler_bottom.Publish(implausible, current_time);
+
+    implausible = IsTemperatureInBounds(si_temperature_boiler_top.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible_temperature = implausible_temperature or implausible;
+    so_implausible_temperature_boiler_top.Publish(implausible, current_time);
+
+    implausible = IsTemperatureInBounds(si_temperature_boiler_middle.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible_temperature = implausible_temperature or implausible;
+    so_implausible_temperature_boiler_middle.Publish(implausible, current_time);
+
+    implausible = IsTemperatureInBounds(si_temperature_room_external.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible_temperature = implausible_temperature or implausible;
+    so_implausible_temperature_room_external.Publish(implausible, current_time);
 
     // integrate external room temperature if value is available
     auto temperature_room = si_temperature_room.Get();
-    if (current_time - si_temperature_room_external.GetTimestamp() < par_max_update_duration.Get())
+    if (current_time - si_temperature_room_external.GetTimestamp() < par_max_update_duration.Get() and not implausible_temperature)
     {
       temperature_room += si_temperature_room_external.Get();
       temperature_room /= 2.0;
@@ -166,7 +184,7 @@ void mController::Sense()
       this->error_ = tErrorState::eNO_ERROR;
     }
   }
-  this->co_error_state.Publish(error_, current_time);
+  this->so_error_state.Publish(error_, current_time);
 }
 
 //----------------------------------------------------------------------
@@ -174,15 +192,6 @@ void mController::Sense()
 //----------------------------------------------------------------------
 void mController::Control()
 {
-  // error handling
-  if ((this->error_ != tErrorState::eNO_ERROR) and not (ci_control_mode.Get() == tControlModeType::eMANUAL))
-  {
-    co_pump_online_ground.Publish(false);
-    co_pump_online_room.Publish(false);
-    co_pump_online_solar.Publish(false);
-    return;
-  }
-
   // reset if control mode changes
   if (ci_control_mode.HasChanged())
   {
@@ -195,6 +204,15 @@ void mController::Control()
     }
 
     co_control_mode.Publish(ci_control_mode.Get(), ci_control_mode.GetTimestamp());
+  }
+
+  // error handling
+  if ((this->error_ != tErrorState::eNO_ERROR) and not(ci_control_mode.Get() == tControlModeType::eMANUAL))
+  {
+    co_pump_online_ground.Publish(false);
+    co_pump_online_room.Publish(false);
+    co_pump_online_solar.Publish(false);
+    return;
   }
 
   // handle set point

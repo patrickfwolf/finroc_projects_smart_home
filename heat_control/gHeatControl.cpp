@@ -111,6 +111,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   this->ci_disable_pump_room.ConnectTo(controller->ci_disable_pump_room);
   this->co_control_mode.ConnectTo(controller->co_control_mode);
   this->co_heating_state.ConnectTo(controller->co_heating_state);
+  this->so_error_state.ConnectTo(controller->so_error_state);
   this->so_led_green.ConnectTo(controller->co_led_online_green);
   this->so_led_yellow.ConnectTo(controller->co_led_online_yellow);
   this->so_led_red.ConnectTo(controller->co_led_online_red);
@@ -128,20 +129,20 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   pump_interface->in_pump_online_ground.ConnectTo(controller->co_pump_online_ground);
   pump_interface->in_pump_online_room.ConnectTo(controller->co_pump_online_room);
   pump_interface->in_pump_online_solar.ConnectTo(controller->co_pump_online_solar);
-  pump_interface->out_gpio_pump_online_ground.ConnectTo("Main Thread/HeatControl/Raspberry Pi GPIO Interface/Input/Gpio Pump Online Ground");
-  pump_interface->out_gpio_pump_online_solar.ConnectTo("Main Thread/HeatControl/Raspberry Pi GPIO Interface/Input/Gpio Pump Online Solar");
-  pump_interface->out_gpio_pump_online_room.ConnectTo("Main Thread/HeatControl/Raspberry Pi GPIO Interface/Input/Gpio Pump Online Room");
+  pump_interface->out_gpio_pump_online_ground.ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Input/Gpio Pump Online Ground");
+  pump_interface->out_gpio_pump_online_solar.ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Input/Gpio Pump Online Solar");
+  pump_interface->out_gpio_pump_online_room.ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Input/Gpio Pump Online Room");
 
   auto mcp_3008 = new shared::mMCP3008<tMCP3008Output::eCOUNT>(this, "MCP3008");
   mcp_3008->par_reference_voltage.Set(5.0);
-  mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT1000_SOLAR).ConnectTo("Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Solar");
-  mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT1000_ROOM).ConnectTo("Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Room");
-  mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT1000_BOILER_MIDDLE).ConnectTo("Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Boiler Middle");
-  mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT1000_GROUND).ConnectTo("Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Ground");
-  mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT100_BOILER_TOP).ConnectTo("Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Boiler Top");
-  mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT100_BOILER_BOTTOM).ConnectTo("Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Boiler Bottom");
-  mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT100_FURNACE).ConnectTo("Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Furnace");
-  mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT100_GARAGE).ConnectTo("Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Garage");
+  mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT1000_SOLAR).ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Solar");
+  mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT1000_ROOM).ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Room");
+  mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT1000_BOILER_MIDDLE).ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Boiler Middle");
+  mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT1000_GROUND).ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Ground");
+  mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT100_BOILER_TOP).ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Boiler Top");
+  mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT100_BOILER_BOTTOM).ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Boiler Bottom");
+  mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT100_FURNACE).ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Furnace");
+  mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT100_GARAGE).ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Garage");
 
   auto pt1000_room = new shared::mPT1000(this, "PT1000 Room");
   pt1000_room->par_pre_resistance.Set(1950);

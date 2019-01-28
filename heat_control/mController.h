@@ -102,6 +102,18 @@ public:
   tSensorInput<rrlib::si_units::tCelsius<double>> si_temperature_furnace;
   tSensorInput<rrlib::si_units::tCelsius<double>> si_temperature_garage;
 
+  tSensorOutput<bool> so_implausible_temperature_boiler_top;
+  tSensorOutput<bool> so_implausible_temperature_boiler_middle;
+  tSensorOutput<bool> so_implausible_temperature_boiler_bottom;
+  tSensorOutput<bool> so_implausible_temperature_room;
+  tSensorOutput<bool> so_implausible_temperature_room_external;
+  tSensorOutput<bool> so_implausible_temperature_solar;
+  tSensorOutput<bool> so_implausible_temperature_ground;
+  tSensorOutput<bool> so_implausible_temperature_furnace;
+  tSensorOutput<bool> so_implausible_temperature_garage;
+  tSensorOutput<tErrorState> so_error_state;
+
+
   tControllerInput<tControlModeType> ci_control_mode;
   tControllerInput<bool> ci_manual_pump_online_solar;
   tControllerInput<bool> ci_manual_pump_online_ground;
@@ -124,7 +136,6 @@ public:
 
   tControllerOutput<tControlModeType> co_control_mode;
   tControllerOutput<heat_control_states::tCurrentState> co_heating_state;
-  tControllerOutput<tErrorState> co_error_state;
   tControllerOutput<rrlib::si_units::tCelsius<double>> co_set_point_temperature;
 
 
@@ -169,7 +180,7 @@ private:
                              const rrlib::si_units::tCelsius<double> & upper_bound,
                              const rrlib::si_units::tCelsius<double> & lower_bound) const
   {
-    return (temperature < upper_bound) and (temperature > lower_bound);
+    return (temperature <= upper_bound) and (temperature >= lower_bound);
   }
 
   std::unique_ptr<heat_control_states::tState> control_state_;

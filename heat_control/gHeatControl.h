@@ -105,9 +105,10 @@ public:
   tSensorOutput<bool> so_pump_room;
   tSensorOutput<bool> so_pump_ground;
 
+  tSensorOutput<tErrorState> so_error_state;
+
   tControllerOutput<heat_control_states::tCurrentState> co_heating_state;
   tControllerOutput<tControlModeType> co_control_mode;
-  tControllerOutput<tErrorState> co_error_state;
 
 //----------------------------------------------------------------------
 // Public methods and typedefs
