@@ -122,7 +122,11 @@ private:
       auto resistance = GetResistance(in_voltage.Get(), par_reference_voltage.Get(), par_pre_resistance.Get());
 
       out_resistance.Publish(resistance, in_voltage.GetTimestamp());
-      out_temperature.Publish(pt_.GetTemperature(resistance), in_voltage.GetTimestamp());
+      auto temperature = pt_.GetTemperature(resistance);
+      if(not std::isnan(temperature.Value()))
+      {
+    	  out_temperature.Publish(temperature, in_voltage.GetTimestamp());
+      }
     }
   }
 

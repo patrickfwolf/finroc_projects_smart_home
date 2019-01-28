@@ -83,7 +83,7 @@ void CreateMainGroup(const std::vector<std::string> &remaining_arguments)
   main_thread->SetCycleTime(std::chrono::milliseconds(200));
 
   auto ventilation = new finroc::smart_home::vent_control::gVentControl(main_thread);
-  ventilation->in_temperature_furnace.ConnectTo("Main Thread/HeatControl/Sensor Output/Temperature Furnace");
-  ventilation->out_average_temperature_room.ConnectTo("Main Thread/HeatControl/Sensor Input/Temperature Room External");
+  ventilation->in_temperature_furnace.ConnectTo("/Main Thread/HeatControl/Sensor Output/Temperature Furnace");
+  ventilation->out_bmp180_temperature_room.ConnectTo("/Main Thread/HeatControl/Sensor Input/Temperature Room External");
 
 }

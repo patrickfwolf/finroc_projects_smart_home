@@ -180,7 +180,7 @@ private:
                              const rrlib::si_units::tCelsius<double> & upper_bound,
                              const rrlib::si_units::tCelsius<double> & lower_bound) const
   {
-    return (temperature <= upper_bound) and (temperature >= lower_bound);
+    return (temperature.ValueFactored() <= upper_bound.ValueFactored()) and (temperature.ValueFactored() >= lower_bound.ValueFactored());
   }
 
   std::unique_ptr<heat_control_states::tState> control_state_;
