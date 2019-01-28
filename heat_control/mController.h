@@ -102,6 +102,8 @@ public:
   tSensorInput<rrlib::si_units::tCelsius<double>> si_temperature_furnace;
   tSensorInput<rrlib::si_units::tCelsius<double>> si_temperature_garage;
 
+  tSensorOutput<rrlib::si_units::tCelsius<double>> so_temperature_room_combined;
+
   tSensorOutput<bool> so_implausible_temperature_boiler_top;
   tSensorOutput<bool> so_implausible_temperature_boiler_middle;
   tSensorOutput<bool> so_implausible_temperature_boiler_bottom;

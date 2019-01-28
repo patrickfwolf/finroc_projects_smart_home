@@ -107,39 +107,39 @@ void mController::Sense()
   {
     // check plausibility of temperatures
     bool implausible = false;
-    implausible = IsTemperatureInBounds(si_temperature_room.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible = not IsTemperatureInBounds(si_temperature_room.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
     implausible_temperature = implausible_temperature or implausible;
     so_implausible_temperature_room.Publish(implausible, current_time);
 
-    implausible = IsTemperatureInBounds(si_temperature_solar.Get(), rrlib::si_units::tCelsius<double>(150.0), rrlib::si_units::tCelsius<double>(-40.0));
+    implausible = not IsTemperatureInBounds(si_temperature_solar.Get(), rrlib::si_units::tCelsius<double>(150.0), rrlib::si_units::tCelsius<double>(-40.0));
     implausible_temperature = implausible_temperature or implausible;
     so_implausible_temperature_solar.Publish(implausible, current_time);
 
-    implausible = IsTemperatureInBounds(si_temperature_ground.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible = not IsTemperatureInBounds(si_temperature_ground.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
     implausible_temperature = implausible_temperature or implausible;
     so_implausible_temperature_ground.Publish(implausible, current_time);
 
-    implausible = IsTemperatureInBounds(si_temperature_garage.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible = not IsTemperatureInBounds(si_temperature_garage.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
     implausible_temperature = implausible_temperature or implausible;
     so_implausible_temperature_garage.Publish(implausible, current_time);
 
-    implausible = IsTemperatureInBounds(si_temperature_furnace.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible = not IsTemperatureInBounds(si_temperature_furnace.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
     implausible_temperature = implausible_temperature or implausible;
     so_implausible_temperature_furnace.Publish(implausible, current_time);
 
-    implausible = IsTemperatureInBounds(si_temperature_boiler_bottom.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible = not IsTemperatureInBounds(si_temperature_boiler_bottom.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
     implausible_temperature = implausible_temperature or implausible;
     so_implausible_temperature_boiler_bottom.Publish(implausible, current_time);
 
-    implausible = IsTemperatureInBounds(si_temperature_boiler_top.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible = not IsTemperatureInBounds(si_temperature_boiler_top.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
     implausible_temperature = implausible_temperature or implausible;
     so_implausible_temperature_boiler_top.Publish(implausible, current_time);
 
-    implausible = IsTemperatureInBounds(si_temperature_boiler_middle.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible = not IsTemperatureInBounds(si_temperature_boiler_middle.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
     implausible_temperature = implausible_temperature or implausible;
     so_implausible_temperature_boiler_middle.Publish(implausible, current_time);
 
-    implausible = IsTemperatureInBounds(si_temperature_room_external.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible = not IsTemperatureInBounds(si_temperature_room_external.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
     implausible_temperature = implausible_temperature or implausible;
     so_implausible_temperature_room_external.Publish(implausible, current_time);
 
@@ -149,6 +149,7 @@ void mController::Sense()
     {
       temperature_room += si_temperature_room_external.Get();
       temperature_room /= 2.0;
+      so_temperature_room_combined.Publish(temperature_room, si_temperature_room.GetTimestamp());
     }
 
     temperatures_ = shared::tTemperatures
