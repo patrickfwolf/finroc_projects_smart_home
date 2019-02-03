@@ -120,7 +120,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   this->so_pump_solar.ConnectTo(controller->co_pump_online_solar);
 
 #ifdef _LIB_WIRING_PI_PRESENT_
-  auto gpio_interface = new finroc::gpio_raspberry_pi::mRaspberryIO(this, "Raspberry Pi GPIO Interface");
+  auto gpio_interface = new finroc::gpio_raspberry_pi::mRaspberryIO(this, "Raspberry Pi GPIO Interface", true, 500000);
   gpio_interface->par_configuration_file.Set("$FINROC_PROJECT_HOME/etc/heat_control_gpio_config.xml");
   gpio_interface->Init();
 #endif

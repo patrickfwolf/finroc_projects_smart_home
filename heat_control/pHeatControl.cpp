@@ -79,7 +79,7 @@ void StartUp()
 void CreateMainGroup(const std::vector<std::string> &remaining_arguments)
 {
   auto main_thread = new finroc::structure::tTopLevelThreadContainer<>("Main Thread", __FILE__".xml", true, make_all_port_links_unique);
-  main_thread->SetCycleTime(std::chrono::milliseconds(200));
+  main_thread->SetCycleTime(std::chrono::milliseconds(40));
 
   new finroc::smart_home::heat_control::gHeatControl(main_thread);
 

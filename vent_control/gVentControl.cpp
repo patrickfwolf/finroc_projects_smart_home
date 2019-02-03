@@ -94,7 +94,7 @@ gVentControl::gVentControl(core::tFrameworkElement *parent, const std::string &n
 {
 
 #ifdef _LIB_WIRING_PI_PRESENT_
-  auto gpio_interface = new gpio_raspberry_pi::mRaspberryIO(this, "Raspberry Pi GPIO Interface");
+  auto gpio_interface = new gpio_raspberry_pi::mRaspberryIO(this, "Raspberry Pi GPIO Interface", true, 500000);
   gpio_interface->par_configuration_file.Set("$FINROC_PROJECT_HOME/etc/vent_control_gpio_config.xml");
   gpio_interface->Init();
 #endif
