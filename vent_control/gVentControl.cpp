@@ -120,7 +120,7 @@ gVentControl::gVentControl(core::tFrameworkElement *parent, const std::string &n
   auto pt100_filter = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT100 Filter");
   pt100_filter->par_number_of_ports.Set(1);
   pt100_filter->Init();
-  pt100_filter->par_weight.Set(0.1);
+  pt100_filter->par_weight.Set(0.01);
   pt100_filter->in_input_values.at(0).ConnectTo(pt100->out_temperature);
   pt100_filter->out_filtered_values.at(0).ConnectTo(this->out_pt100_temperature_room);
 
@@ -128,7 +128,7 @@ gVentControl::gVentControl(core::tFrameworkElement *parent, const std::string &n
   average_temperature_room->par_number_of_values.Set(2);
   average_temperature_room->Init();
   average_temperature_room->in_signals.at(0).ConnectTo(pt100_filter->out_filtered_values.at(0));
-  average_temperature_room->in_signals.at(0).ConnectTo(bmp180->out_temperature);
+  average_temperature_room->in_signals.at(1).ConnectTo(bmp180->out_temperature);
   average_temperature_room->out_signal.ConnectTo(this->out_average_temperature_room);
 
   auto mq9 = new shared::mMQ9(this, "MQ9");
