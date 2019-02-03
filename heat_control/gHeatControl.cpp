@@ -153,7 +153,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   auto filter_room = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT1000 Room Filter");
   filter_room->par_number_of_ports.Set(1);
   filter_room->Init();
-  filter_room->par_weight.Set(0.01);
+  filter_room->par_weight.Set(0.001);
   filter_room->par_initial_value.Set(rrlib::si_units::tCelsius<double>(20.0));
   filter_room->in_input_values.at(0).ConnectTo(pt1000_room->out_temperature);
   filter_room->out_filtered_values.at(0).ConnectTo(controller->si_temperature_room);
@@ -167,7 +167,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   auto filter_boiler_middle = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT1000 Boiler Middle Filter");
   filter_boiler_middle->par_number_of_ports.Set(1);
   filter_boiler_middle->Init();
-  filter_boiler_middle->par_weight.Set(0.1);
+  filter_boiler_middle->par_weight.Set(0.01);
   filter_boiler_middle->par_initial_value.Set(rrlib::si_units::tCelsius<double>(20.0));
   filter_boiler_middle->in_input_values.at(0).ConnectTo(pt1000_boiler_middle->out_temperature);
   filter_boiler_middle->out_filtered_values.at(0).ConnectTo(controller->si_temperature_boiler_middle);
@@ -181,7 +181,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   auto filter_boiler_bottom = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT100 Boiler Bottom Filter");
   filter_boiler_bottom->par_number_of_ports.Set(1);
   filter_boiler_bottom->Init();
-  filter_boiler_bottom->par_weight.Set(0.1);
+  filter_boiler_bottom->par_weight.Set(0.01);
   filter_boiler_bottom->par_initial_value.Set(rrlib::si_units::tCelsius<double>(20.0));
   filter_boiler_bottom->in_input_values.at(0).ConnectTo(pt100_boiler_bottom->out_temperature);
   filter_boiler_bottom->out_filtered_values.at(0).ConnectTo(controller->si_temperature_boiler_bottom);
@@ -195,7 +195,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   auto filter_boiler_top = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT100 Boiler Top Filter");
   filter_boiler_top->par_number_of_ports.Set(1);
   filter_boiler_top->Init();
-  filter_boiler_top->par_weight.Set(0.1);
+  filter_boiler_top->par_weight.Set(0.01);
   filter_boiler_top->par_initial_value.Set(rrlib::si_units::tCelsius<double>(20.0));
   filter_boiler_top->in_input_values.at(0).ConnectTo(pt100_boiler_top->out_temperature);
   filter_boiler_top->out_filtered_values.at(0).ConnectTo(controller->si_temperature_boiler_top);
@@ -209,7 +209,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   auto filter_solar = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT1000 Solar Filter");
   filter_solar->par_number_of_ports.Set(1);
   filter_solar->Init();
-  filter_solar->par_weight.Set(0.1);
+  filter_solar->par_weight.Set(0.005);
   filter_solar->par_initial_value.Set(rrlib::si_units::tCelsius<double>(20.0));
   filter_solar->in_input_values.at(0).ConnectTo(pt1000_solar->out_temperature);
   filter_solar->out_filtered_values.at(0).ConnectTo(controller->si_temperature_solar);
@@ -223,7 +223,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   auto filter_ground = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT1000 Ground Filter");
   filter_ground->par_number_of_ports.Set(1);
   filter_ground->Init();
-  filter_ground->par_weight.Set(0.1);
+  filter_ground->par_weight.Set(0.05);
   filter_ground->par_initial_value.Set(rrlib::si_units::tCelsius<double>(20.0));
   filter_ground->in_input_values.at(0).ConnectTo(pt1000_ground->out_temperature);
   filter_ground->out_filtered_values.at(0).ConnectTo(controller->si_temperature_ground);
@@ -237,7 +237,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   auto filter_furnace = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT100 Furnace Filter");
   filter_furnace->par_number_of_ports.Set(1);
   filter_furnace->Init();
-  filter_furnace->par_weight.Set(0.1);
+  filter_furnace->par_weight.Set(0.01);
   filter_furnace->par_initial_value.Set(rrlib::si_units::tCelsius<double>(20.0));
   filter_furnace->in_input_values.at(0).ConnectTo(pt100_furnace->out_temperature);
   filter_furnace->out_filtered_values.at(0).ConnectTo(controller->si_temperature_furnace);
@@ -251,7 +251,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   auto filter_garage = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT100 Garage Filter");
   filter_garage->par_number_of_ports.Set(1);
   filter_garage->Init();
-  filter_garage->par_weight.Set(0.1);
+  filter_garage->par_weight.Set(0.01);
   filter_garage->par_initial_value.Set(rrlib::si_units::tCelsius<double>(20.0));
   filter_garage->in_input_values.at(0).ConnectTo(pt100_garage->out_temperature);
   filter_garage->out_filtered_values.at(0).ConnectTo(controller->si_temperature_garage);

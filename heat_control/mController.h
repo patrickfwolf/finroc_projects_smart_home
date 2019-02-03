@@ -64,7 +64,7 @@ enum class tControlModeType
 {
   eSTOP,
   eAUTOMATIC,
-  eAUTOMATIC_NO_ROOM,
+  eAUTOMATIC_NO_GROUND,
   eAUTOMATIC_SOLAR_ONLY,
   eMANUAL
 };
@@ -113,6 +113,15 @@ public:
   tSensorOutput<bool> so_implausible_temperature_ground;
   tSensorOutput<bool> so_implausible_temperature_furnace;
   tSensorOutput<bool> so_implausible_temperature_garage;
+  tSensorOutput<bool> so_outdated_temperature_boiler_top;
+  tSensorOutput<bool> so_outdated_temperature_boiler_middle;
+  tSensorOutput<bool> so_outdated_temperature_boiler_bottom;
+  tSensorOutput<bool> so_outdated_temperature_room;
+  tSensorOutput<bool> so_outdated_temperature_room_external;
+  tSensorOutput<bool> so_outdated_temperature_solar;
+  tSensorOutput<bool> so_outdated_temperature_ground;
+  tSensorOutput<bool> so_outdated_temperature_furnace;
+  tSensorOutput<bool> so_outdated_temperature_garage;
   tSensorOutput<tErrorState> so_error_state;
 
 

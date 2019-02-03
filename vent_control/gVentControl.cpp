@@ -124,7 +124,7 @@ gVentControl::gVentControl(core::tFrameworkElement *parent, const std::string &n
   pt100_filter->in_input_values.at(0).ConnectTo(pt100->out_temperature);
   pt100_filter->out_filtered_values.at(0).ConnectTo(this->out_pt100_temperature_room);
 
-  auto average_temperature_room = new structure_elements::mMean<rrlib::si_units::tCelsius<double>>(this, "Average Temperature Room");
+  auto average_temperature_room = new structure_elements::mMean<rrlib::si_units::tCelsius<double>, double>(this, "Average Temperature Room");
   average_temperature_room->par_number_of_values.Set(2);
   average_temperature_room->Init();
   average_temperature_room->in_signals.at(0).ConnectTo(pt100_filter->out_filtered_values.at(0));
@@ -141,7 +141,7 @@ gVentControl::gVentControl(core::tFrameworkElement *parent, const std::string &n
   auto controller = new mController(this, "Controller");
   controller->co_ventilation.ConnectTo(this->out_ventilation);
 #ifdef _LIB_WIRING_PI_PRESENT_
-  controller->co_gpio_ventilation.ConnectTo(gpio_interface->GetInputs().GetQualifiedName() + "GPIO Ventilation");
+  controller->co_gpio_ventilation.ConnectTo("/Main Thread/VentControl/Raspberry Pi GPIO Interface/Input/GPIO Ventilation");
 #endif
 
 }

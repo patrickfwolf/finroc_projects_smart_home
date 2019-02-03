@@ -97,10 +97,42 @@ void mController::OnParameterChange()
 //----------------------------------------------------------------------
 void mController::Sense()
 {
-  auto current_time = rrlib::time::Now();
-  // TODO check time stamps
-
   bool outdated_temperature = false;
+  auto current_time = rrlib::time::Now();
+
+  bool outdated = false;
+  outdated = (current_time - par_max_update_duration.Get() > si_temperature_boiler_bottom.GetTimestamp()) ? true : false;
+  so_outdated_temperature_boiler_bottom.Publish(outdated, current_time);
+//  outdated_temperature = outdated_temperature or outdated;
+
+  outdated = (current_time - par_max_update_duration.Get() > si_temperature_boiler_top.GetTimestamp()) ? true : false;
+  so_outdated_temperature_boiler_top.Publish(outdated, current_time);
+//  outdated_temperature = outdated_temperature or outdated;
+
+  outdated = (current_time - par_max_update_duration.Get() > si_temperature_boiler_middle.GetTimestamp()) ? true : false;
+  so_outdated_temperature_boiler_middle.Publish(outdated, current_time);
+  outdated_temperature = outdated_temperature or outdated;
+
+  outdated = (current_time - par_max_update_duration.Get() > si_temperature_furnace.GetTimestamp()) ? true : false;
+  so_outdated_temperature_furnace.Publish(outdated, current_time);
+//  outdated_temperature = outdated_temperature or outdated;
+
+  outdated = (current_time - par_max_update_duration.Get() > si_temperature_garage.GetTimestamp()) ? true : false;
+  so_outdated_temperature_garage.Publish(outdated, current_time);
+//  outdated_temperature = outdated_temperature or outdated;
+
+  outdated = (current_time - par_max_update_duration.Get() > si_temperature_ground.GetTimestamp()) ? true : false;
+  so_outdated_temperature_garage.Publish(outdated, current_time);
+  outdated_temperature = outdated_temperature or outdated;
+
+  outdated = (current_time - par_max_update_duration.Get() > si_temperature_room.GetTimestamp()) ? true : false;
+  so_outdated_temperature_room.Publish(outdated, current_time);
+  outdated_temperature = outdated_temperature or outdated;
+
+  outdated = (current_time - par_max_update_duration.Get() > si_temperature_solar.GetTimestamp()) ? true : false;
+  so_outdated_temperature_solar.Publish(outdated, current_time);
+  outdated_temperature = outdated_temperature or outdated;
+
   bool implausible_temperature = false;
 
   if (this->SensorInputChanged())
@@ -235,16 +267,13 @@ void mController::Control()
 
   // determine state
   bool state_changed = false;
-  if (ci_control_mode.Get() != tControlModeType::eMANUAL or ci_control_mode.Get() != tControlModeType::eSTOP)
+  std::unique_ptr<heat_control_states::tState> next_state;
+  control_state_->ComputeControlState(next_state, temperatures_);
+  state_changed = control_state_->HasChanged();
+  if (state_changed)
   {
-    std::unique_ptr<heat_control_states::tState> next_state;
-    control_state_->ComputeControlState(next_state, temperatures_);
-    state_changed = control_state_->HasChanged();
-    if (state_changed)
-    {
-      control_state_ = std::move(next_state);
-      co_heating_state.Publish(control_state_->GetCurrentState(), rrlib::time::Now());
-    }
+    control_state_ = std::move(next_state);
+    co_heating_state.Publish(control_state_->GetCurrentState(), rrlib::time::Now());
   }
 
   // control mode
@@ -288,6 +317,7 @@ void mController::Control()
     }
     break;
   case tControlModeType::eMANUAL:
+  {
     if (ci_manual_pump_online_ground.HasChanged())
     {
       co_pump_online_ground.Publish(ci_manual_pump_online_ground.Get());
@@ -300,8 +330,9 @@ void mController::Control()
     {
       co_pump_online_solar.Publish(ci_manual_pump_online_solar.Get());
     }
-    break;
-  case tControlModeType::eAUTOMATIC_NO_ROOM:
+  }
+  break;
+  case tControlModeType::eAUTOMATIC_NO_GROUND:
   {
     if (state_changed)
     {
