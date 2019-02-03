@@ -122,7 +122,7 @@ void mController::Sense()
 //  outdated_temperature = outdated_temperature or outdated;
 
   outdated = (current_time - par_max_update_duration.Get() > si_temperature_ground.GetTimestamp()) ? true : false;
-  so_outdated_temperature_garage.Publish(outdated, current_time);
+  so_outdated_temperature_ground.Publish(outdated, current_time);
   outdated_temperature = outdated_temperature or outdated;
 
   outdated = (current_time - par_max_update_duration.Get() > si_temperature_room.GetTimestamp()) ? true : false;
@@ -132,6 +132,9 @@ void mController::Sense()
   outdated = (current_time - par_max_update_duration.Get() > si_temperature_solar.GetTimestamp()) ? true : false;
   so_outdated_temperature_solar.Publish(outdated, current_time);
   outdated_temperature = outdated_temperature or outdated;
+
+  bool external_outdated = (current_time - par_max_update_duration.Get() > si_temperature_room_external.GetTimestamp()) ? true : false;
+  so_outdated_temperature_room_external.Publish(external_outdated, current_time);
 
   bool implausible_temperature = false;
 
@@ -171,13 +174,12 @@ void mController::Sense()
     implausible_temperature = implausible_temperature or implausible;
     so_implausible_temperature_boiler_middle.Publish(implausible, current_time);
 
-    implausible = not IsTemperatureInBounds(si_temperature_room_external.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
-    implausible_temperature = implausible_temperature or implausible;
-    so_implausible_temperature_room_external.Publish(implausible, current_time);
+    bool external_implausible = not IsTemperatureInBounds(si_temperature_room_external.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
+    so_implausible_temperature_room_external.Publish(external_implausible, current_time);
 
     // integrate external room temperature if value is available
     auto temperature_room = si_temperature_room.Get();
-    if (current_time - si_temperature_room_external.GetTimestamp() < par_max_update_duration.Get() and not implausible_temperature)
+    if (not external_outdated and not external_implausible)
     {
       temperature_room += si_temperature_room_external.Get();
       temperature_room /= 2.0;
