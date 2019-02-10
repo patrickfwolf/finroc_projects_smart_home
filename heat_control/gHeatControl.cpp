@@ -145,7 +145,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT100_GARAGE).ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Garage");
 
   auto pt1000_room = new shared::mPT1000(this, "PT1000 Room");
-  pt1000_room->par_pre_resistance.Set(1950);
+  pt1000_room->par_pre_resistance.Set(1000);
   pt1000_room->par_reference_voltage.Set(5.0);
   pt1000_room->par_supply_voltage.Set(5.0);
   pt1000_room->in_voltage.ConnectTo(mcp_3008->out_voltage.at(tMCP3008Output::ePT1000_ROOM));
@@ -159,7 +159,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   filter_room->out_filtered_values.at(0).ConnectTo(controller->si_temperature_room);
 
   auto pt1000_boiler_middle = new shared::mPT1000(this, "PT1000 Boiler Middle");
-  pt1000_boiler_middle->par_pre_resistance.Set(1949);
+  pt1000_boiler_middle->par_pre_resistance.Set(1000);
   pt1000_boiler_middle->par_reference_voltage.Set(5.0);
   pt1000_boiler_middle->par_supply_voltage.Set(5.0);
   pt1000_boiler_middle->in_voltage.ConnectTo(mcp_3008->out_voltage.at(tMCP3008Output::ePT1000_BOILER_MIDDLE));
@@ -201,7 +201,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   filter_boiler_top->out_filtered_values.at(0).ConnectTo(controller->si_temperature_boiler_top);
 
   auto pt1000_solar = new shared::mPT1000(this, "PT1000 Solar");
-  pt1000_solar->par_pre_resistance.Set(1987);
+  pt1000_solar->par_pre_resistance.Set(1000);
   pt1000_solar->par_reference_voltage.Set(5.0);
   pt1000_solar->par_supply_voltage.Set(5.0);
   pt1000_solar->in_voltage.ConnectTo(mcp_3008->out_voltage.at(tMCP3008Output::ePT1000_SOLAR));
@@ -215,7 +215,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   filter_solar->out_filtered_values.at(0).ConnectTo(controller->si_temperature_solar);
 
   auto pt1000_ground = new shared::mPT1000(this, "PT1000 Ground");
-  pt1000_ground->par_pre_resistance.Set(1922);
+  pt1000_ground->par_pre_resistance.Set(1000);
   pt1000_ground->par_reference_voltage.Set(5.0);
   pt1000_ground->par_supply_voltage.Set(5.0);
   pt1000_ground->in_voltage.ConnectTo(mcp_3008->out_voltage.at(tMCP3008Output::ePT1000_GROUND));
@@ -223,7 +223,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   auto filter_ground = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT1000 Ground Filter");
   filter_ground->par_number_of_ports.Set(1);
   filter_ground->Init();
-  filter_ground->par_weight.Set(0.05);
+  filter_ground->par_weight.Set(0.005);
   filter_ground->par_initial_value.Set(rrlib::si_units::tCelsius<double>(20.0));
   filter_ground->in_input_values.at(0).ConnectTo(pt1000_ground->out_temperature);
   filter_ground->out_filtered_values.at(0).ConnectTo(controller->si_temperature_ground);

@@ -138,28 +138,28 @@ private:
    * @return resistance
    */
   inline rrlib::si_units::tElectricResistance<double> GetResistance(
-    const rrlib::si_units::tVoltage<double> & voltage,
-    const rrlib::si_units::tVoltage<double> & reference_voltage,
-    const rrlib::si_units::tElectricResistance<double> & pre_resistance) const
+    const rrlib::si_units::tVoltage<double> & voltage_adc,
+    const rrlib::si_units::tVoltage<double> & voltage_ref,
+    const rrlib::si_units::tElectricResistance<double> & resistance_pre) const
   {
     /*
      * _____ V_ref
      *   |
-     *  [ ] PT
+     *  [ ] R_pre
      *   |____ ADC V
      *   |
-     *  [ ] R
+     *  [ ] R_pt
      * __|__ GND
      *
-     * V_supply / V_ref = R_pre + R_pt / R_pre
+     * V_adc / V_ref = R_pt + R_pt / R_pre
      *
      */
-    if (voltage.Value() == 0)
+    if (voltage_adc.Value() == 0)
     {
-      return pre_resistance;
+      return resistance_pre;
     }
 
-    return pre_resistance * ((reference_voltage / voltage).Value() - 1.0);
+    return resistance_pre * ((voltage_adc / voltage_ref).Value() - 1.0);
   }
 
   shared::tPT<TResistance> pt_;
