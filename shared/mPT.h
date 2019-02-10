@@ -146,20 +146,21 @@ private:
      * _____ V_ref
      *   |
      *  [ ] R_pre
-     *   |____ ADC V
+     *   |____ V_adc
      *   |
      *  [ ] R_pt
-     * __|__ GND
+     * __|__
+     *        V_gnd
      *
-     * V_adc / V_ref = R_pt + R_pt / R_pre
+     * R_pre / (V_ref - V_adc) = R_pt / (V_adc - V_gnf)
      *
      */
-    if (voltage_adc.Value() == 0)
+    if (voltage_adc >= voltage_ref)
     {
       return resistance_pre;
     }
 
-    return resistance_pre * ((voltage_adc / voltage_ref).Value() - 1.0);
+    return resistance_pre * voltage_adc / (voltage_adc - voltage_ref);
   }
 
   shared::tPT<TResistance> pt_;
