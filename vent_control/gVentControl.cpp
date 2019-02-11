@@ -70,9 +70,9 @@ namespace vent_control
 //----------------------------------------------------------------------
 enum tMCP3008Output
 {
-	ePT100 = 0,
-	eMQ9,
-	eCOUNT
+  ePT100 = 0,
+  eMQ9,
+  eCOUNT
 };
 
 

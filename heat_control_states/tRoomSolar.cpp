@@ -64,6 +64,7 @@ void tRoomSolar::ComputeControlState(std::unique_ptr<tState> & state, const shar
       (temperatures.GetBoiler() >= shared::cROOM_DIFF_BOILER_LOW) or
       (temperatures.GetBoiler() < temperatures.GetRoom() + shared::cROOM_DIFF_BOILER_LOW))
   {
+    RRLIB_LOG_PRINT(DEBUG, "Room Solar -> Solar");
     state = std::unique_ptr<tState>(new tSolar());
     this->SetChanged(true);
     return;
@@ -72,6 +73,7 @@ void tRoomSolar::ComputeControlState(std::unique_ptr<tState> & state, const shar
   // Solartemperatur weniger als 2°C größer als Speichertemperatur
   if (temperatures.GetSolar() - temperatures.GetBoiler() < shared::cSOLAR_DIFF_BOILER_LOW)
   {
+    RRLIB_LOG_PRINT(DEBUG, "Room Solar -> Room");
     state = std::unique_ptr<tState>(new tRoom());
     this->SetChanged(true);
     return;
@@ -81,6 +83,7 @@ void tRoomSolar::ComputeControlState(std::unique_ptr<tState> & state, const shar
   if ((temperatures.GetBoiler() > shared::cGROUND_BOILER_MIN) and
       (temperatures.GetBoiler() > temperatures.GetGround() + shared::cGROUND_DIFF_BOILER_HIGH))
   {
+    RRLIB_LOG_PRINT(DEBUG, "Room Solar -> Ground Room Solar");
     state = std::unique_ptr<tState>(new tGroundRoomSolar());
     this->SetChanged(true);
     return;

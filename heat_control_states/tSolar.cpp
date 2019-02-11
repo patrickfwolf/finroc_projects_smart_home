@@ -59,6 +59,7 @@ void tSolar::ComputeControlState(std::unique_ptr<tState> & state, const shared::
   // Solar less than boiler offset
   if (temperatures.GetSolar() - temperatures.GetBoiler() < shared::cSOLAR_DIFF_BOILER_LOW)
   {
+    RRLIB_LOG_PRINT(DEBUG, "Solar -> Ready");
     state = std::unique_ptr<tState>(new tReady());
     this->SetChanged(true);
     return;
@@ -69,6 +70,8 @@ void tSolar::ComputeControlState(std::unique_ptr<tState> & state, const shared::
       (temperatures.GetBoiler() < shared::cROOM_BOILER_MAX) and
       (temperatures.GetBoiler() > temperatures.GetRoom() + shared::cROOM_DIFF_BOILER_HIGH))
   {
+    RRLIB_LOG_PRINT(DEBUG, "Solar -> Room Solar");
+
     state = std::unique_ptr<tState>(new tRoomSolar());
     this->SetChanged(true);
     return;
@@ -78,6 +81,8 @@ void tSolar::ComputeControlState(std::unique_ptr<tState> & state, const shared::
   if ((temperatures.GetBoiler() > temperatures.GetGround() + shared::cGROUND_DIFF_BOILER_HIGH) and
       (temperatures.GetBoiler() > shared::cGROUND_BOILER_MIN))
   {
+    RRLIB_LOG_PRINT(DEBUG, "Solar -> Ground Solar");
+
     state = std::unique_ptr<tState>(new tGroundSolar());
     this->SetChanged(true);
     return;

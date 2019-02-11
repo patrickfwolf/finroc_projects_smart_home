@@ -58,24 +58,21 @@ namespace shared
 //----------------------------------------------------------------------
 // Forward declarations / typedefs / enums
 //----------------------------------------------------------------------
-static constexpr rrlib::si_units::tCelsius<double> cROOM_DIFF_SETPOINT_LOW(0.5);
-static constexpr rrlib::si_units::tCelsius<double> cROOM_DIFF_SETPOINT_HIGH(0.5);
-static constexpr rrlib::si_units::tCelsius<double> cROOM_DIFF_BOILER_LOW(3.0);
-static constexpr rrlib::si_units::tCelsius<double> cROOM_DIFF_BOILER_HIGH(3.0);
+
+// differences in °K, and thresholds in °C
+
+static constexpr rrlib::si_units::tTemperature<double> cROOM_DIFF_SETPOINT_LOW(0.5);
+static constexpr rrlib::si_units::tTemperature<double> cROOM_DIFF_SETPOINT_HIGH(0.5);
+static constexpr rrlib::si_units::tTemperature<double> cROOM_DIFF_BOILER_LOW(3.0);
+static constexpr rrlib::si_units::tTemperature<double> cROOM_DIFF_BOILER_HIGH(3.0);
 static constexpr rrlib::si_units::tCelsius<double> cROOM_BOILER_MAX(50.0);
-static constexpr rrlib::si_units::tCelsius<double> cROOM_ERROR_LOW(5.0);
-static constexpr rrlib::si_units::tCelsius<double> cROOM_ERROR_HIGH(50.0);
 
-static constexpr rrlib::si_units::tCelsius<double> cGROUND_DIFF_BOILER_LOW(2.0);
-static constexpr rrlib::si_units::tCelsius<double> cGROUND_DIFF_BOILER_HIGH(6.0);
+static constexpr rrlib::si_units::tTemperature<double> cGROUND_DIFF_BOILER_LOW(2.0);
+static constexpr rrlib::si_units::tTemperature<double> cGROUND_DIFF_BOILER_HIGH(6.0);
 static constexpr rrlib::si_units::tCelsius<double> cGROUND_BOILER_MIN(49.0);
-static constexpr rrlib::si_units::tCelsius<double> cGROUND_ERROR_LOW(-20.0);
-static constexpr rrlib::si_units::tCelsius<double> cGROUND_ERROR_HIGH(40.0);
 
-static constexpr rrlib::si_units::tCelsius<double> cSOLAR_DIFF_BOILER_LOW(2.0);
-static constexpr rrlib::si_units::tCelsius<double> cSOLAR_DIFF_BOILER_HIGH(6.0);
-static constexpr rrlib::si_units::tCelsius<double> cSOLAR_ERROR_LOW(-40.0);
-static constexpr rrlib::si_units::tCelsius<double> cSOLAR_ERROR_HIGH(200.0);
+static constexpr rrlib::si_units::tTemperature<double> cSOLAR_DIFF_BOILER_LOW(2.0);
+static constexpr rrlib::si_units::tTemperature<double> cSOLAR_DIFF_BOILER_HIGH(6.0);
 
 //----------------------------------------------------------------------
 // Class declaration

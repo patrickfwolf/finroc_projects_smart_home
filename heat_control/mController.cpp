@@ -253,12 +253,12 @@ void mController::Control()
   // handle set point
   if (ci_increase_set_point_temperature.HasChanged())
   {
-    set_point_ += rrlib::si_units::tCelsius<double>(0.5);
+    set_point_ += rrlib::si_units::tTemperature<double>(0.5);
     co_set_point_temperature.Publish(set_point_, ci_increase_set_point_temperature.GetTimestamp());
   }
   if (ci_decrease_set_point_temperature.HasChanged())
   {
-    set_point_ -= rrlib::si_units::tCelsius<double>(0.5);
+    set_point_ -= rrlib::si_units::tTemperature<double>(0.5);
     co_set_point_temperature.Publish(set_point_, ci_decrease_set_point_temperature.GetTimestamp());
   }
   if (ci_reset_set_point_temperature.HasChanged())

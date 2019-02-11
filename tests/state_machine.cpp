@@ -145,11 +145,13 @@ private:
     RRLIB_UNIT_TESTS_ASSERT(heat_control_states::tCurrentState::eREADY == state->GetCurrentState());
     RRLIB_UNIT_TESTS_ASSERT(not state->HasChanged());
 
-    rrlib::si_units::tCelsius<double> boiler = 50.0;
+    rrlib::si_units::tCelsius<double> boiler = 20.0;
     rrlib::si_units::tCelsius<double> room = 20.0;
-    rrlib::si_units::tCelsius<double> solar = 50.0;
-    rrlib::si_units::tCelsius<double> ground = 30.0;
+    rrlib::si_units::tCelsius<double> solar = 20.0;
+    rrlib::si_units::tCelsius<double> ground = 20.0;
     rrlib::si_units::tCelsius<double> room_set_point = 20.0;
+
+    RRLIB_UNIT_TESTS_ASSERT(boiler.ValueFactored() == 20.0);
 
     /*
     eREADY = 0,
@@ -163,54 +165,80 @@ private:
     */
 
     state->ComputeControlState(new_state, shared::tTemperatures(boiler, room, solar, ground, room_set_point));
+    RRLIB_UNIT_TESTS_ASSERT(not state->HasChanged());
     if (state->HasChanged())
     {
       state = std::move(new_state);
     }
-    RRLIB_UNIT_TESTS_ASSERT(not state->HasChanged());
-//    RRLIB_UNIT_TESTS_EQUALITY(static_cast<int>(heat_control_states::tCurrentState::eREADY), static_cast<int>(state->GetCurrentState()));
-//
-//    // ----------  Ready transitions  ------------------
-//
-//    room_set_point = 20.0;
-//    state->ComputeControlState(new_state, shared::tTemperatures(boiler, room, solar, ground, room_set_point));
-//    if (state->HasChanged())
-//    {
-//      state = std::move(new_state);
-//    }
-//    RRLIB_UNIT_TESTS_ASSERT(not state->HasChanged());
-//    RRLIB_UNIT_TESTS_EQUALITY(static_cast<int>(heat_control_states::tCurrentState::eREADY),  static_cast<int>(state->GetCurrentState()));
-//
-//
-//    solar = 20.0;
-//    state->ComputeControlState(new_state, shared::tTemperatures(boiler, room, solar, ground, room_set_point));
-//    RRLIB_UNIT_TESTS_ASSERT(state->HasChanged());
-//    if (state->HasChanged())
-//    {
-//      state = std::move(new_state);
-//    }
-//    RRLIB_UNIT_TESTS_EQUALITY(1, static_cast<int>(state->GetCurrentState()));
-//
-//    boiler = 17.9;
-//    room = 20.0;
-//    state->ComputeControlState(new_state, shared::tTemperatures(boiler, room, solar, ground, room_set_point));
-//    RRLIB_UNIT_TESTS_ASSERT(not state->HasChanged());
-//    if (state->HasChanged())
-//    {
-//      state = std::move(new_state);
-//    }
-//    RRLIB_UNIT_TESTS_EQUALITY(1, static_cast<int>(state->GetCurrentState()));
-//
-//
-//    solar = 18.0;
-//    state->ComputeControlState(new_state, shared::tTemperatures(boiler, room, solar, ground, room_set_point));
-//    RRLIB_UNIT_TESTS_ASSERT(state->HasChanged());
-//    if (state->HasChanged())
-//    {
-//      state = std::move(new_state);
-//    }
-//    RRLIB_UNIT_TESTS_EQUALITY(0, static_cast<int>(state->GetCurrentState()));
+    RRLIB_UNIT_TESTS_EQUALITY(static_cast<int>(heat_control_states::tCurrentState::eREADY), static_cast<int>(state->GetCurrentState()));
 
+    // ----------  Ready transitions  ------------------
+
+    solar = 40.0;
+    state->ComputeControlState(new_state, shared::tTemperatures(boiler, room, solar, ground, room_set_point));
+    RRLIB_UNIT_TESTS_ASSERT(state->HasChanged());
+    if (state->HasChanged())
+    {
+      state = std::move(new_state);
+    }
+    RRLIB_UNIT_TESTS_EQUALITY(static_cast<int>(heat_control_states::tCurrentState::eSOLAR),  static_cast<int>(state->GetCurrentState()));
+
+
+    solar = 20.0;
+    state->ComputeControlState(new_state, shared::tTemperatures(boiler, room, solar, ground, room_set_point));
+    RRLIB_UNIT_TESTS_ASSERT(state->HasChanged());
+    if (state->HasChanged())
+    {
+      state = std::move(new_state);
+    }
+    RRLIB_UNIT_TESTS_EQUALITY(0, static_cast<int>(state->GetCurrentState()));
+
+    room = 10.0;
+    state->ComputeControlState(new_state, shared::tTemperatures(boiler, room, solar, ground, room_set_point));
+    RRLIB_UNIT_TESTS_ASSERT(state->HasChanged());
+    if (state->HasChanged())
+    {
+      state = std::move(new_state);
+    }
+    RRLIB_UNIT_TESTS_EQUALITY(static_cast<int>(heat_control_states::tCurrentState::eROOM),  static_cast<int>(state->GetCurrentState()));
+
+    room = 20.0;
+    state->ComputeControlState(new_state, shared::tTemperatures(boiler, room, solar, ground, room_set_point));
+    RRLIB_UNIT_TESTS_ASSERT(state->HasChanged());
+    if (state->HasChanged())
+    {
+      state = std::move(new_state);
+    }
+    RRLIB_UNIT_TESTS_EQUALITY(static_cast<int>(heat_control_states::tCurrentState::eREADY),  static_cast<int>(state->GetCurrentState()));
+
+    boiler = 60.0;
+    state->ComputeControlState(new_state, shared::tTemperatures(boiler, room, solar, ground, room_set_point));
+    RRLIB_UNIT_TESTS_ASSERT(state->HasChanged());
+    if (state->HasChanged())
+    {
+      state = std::move(new_state);
+    }
+    RRLIB_UNIT_TESTS_EQUALITY(static_cast<int>(heat_control_states::tCurrentState::eGROUND),  static_cast<int>(state->GetCurrentState()));
+
+    boiler = 20.0;
+    state->ComputeControlState(new_state, shared::tTemperatures(boiler, room, solar, ground, room_set_point));
+    RRLIB_UNIT_TESTS_ASSERT(state->HasChanged());
+    if (state->HasChanged())
+    {
+      state = std::move(new_state);
+    }
+    RRLIB_UNIT_TESTS_EQUALITY(static_cast<int>(heat_control_states::tCurrentState::eREADY),  static_cast<int>(state->GetCurrentState()));
+
+
+    boiler = 17.9;
+    room = 20.0;
+    state->ComputeControlState(new_state, shared::tTemperatures(boiler, room, solar, ground, room_set_point));
+    RRLIB_UNIT_TESTS_ASSERT(not state->HasChanged());
+    if (state->HasChanged())
+    {
+      state = std::move(new_state);
+    }
+    RRLIB_UNIT_TESTS_EQUALITY(static_cast<int>(heat_control_states::tCurrentState::eREADY), static_cast<int>(state->GetCurrentState()));
   }
 };
 

@@ -83,11 +83,11 @@ mController::~mController()
 //----------------------------------------------------------------------
 void mController::Sense()
 {
-	if(this->SensorInputChanged())
-	{
-		(si_temperature_furnace.Get() > par_furnace_activity_threshold.Get()) ? furnace_active_ = true : furnace_active_ = false;
-		so_furnace_active.Publish(furnace_active_, si_temperature_furnace.GetTimestamp());
-	}
+  if (this->SensorInputChanged())
+  {
+    (si_temperature_furnace.Get() > par_furnace_activity_threshold.Get()) ? furnace_active_ = true : furnace_active_ = false;
+    so_furnace_active.Publish(furnace_active_, si_temperature_furnace.GetTimestamp());
+  }
 }
 
 //----------------------------------------------------------------------
@@ -95,24 +95,24 @@ void mController::Sense()
 //----------------------------------------------------------------------
 void mController::Control()
 {
-	if(this->ControllerInputChanged() or ci_ventilation_mode.Get() == tVentilationMode::eAUTOMATIC)
-	{
-	  // ventilation manually disabled
-	  if (ci_ventilation_mode.Get() == tVentilationMode::eOFFLINE)
-	  {
-	    co_gpio_ventilation.Publish(cVENTILATION_OFFINE);
-	    co_ventilation.Publish(false);
-	  }
-	  else if (ci_ventilation_mode.Get() == tVentilationMode::eONLINE)
-	  {
-	    co_gpio_ventilation.Publish(cVENTILATION_ONLINE);
-	    co_ventilation.Publish(true);
-	  }
-	  else if (ci_ventilation_mode.Get() == tVentilationMode::eAUTOMATIC)
-	  {
-		  // TODO: implement
-	  }
-	}
+  if (this->ControllerInputChanged() or ci_ventilation_mode.Get() == tVentilationMode::eAUTOMATIC)
+  {
+    // ventilation manually disabled
+    if (ci_ventilation_mode.Get() == tVentilationMode::eOFFLINE)
+    {
+      co_gpio_ventilation.Publish(cVENTILATION_OFFINE);
+      co_ventilation.Publish(false);
+    }
+    else if (ci_ventilation_mode.Get() == tVentilationMode::eONLINE)
+    {
+      co_gpio_ventilation.Publish(cVENTILATION_ONLINE);
+      co_ventilation.Publish(true);
+    }
+    else if (ci_ventilation_mode.Get() == tVentilationMode::eAUTOMATIC)
+    {
+      // TODO: implement
+    }
+  }
 }
 
 //----------------------------------------------------------------------
