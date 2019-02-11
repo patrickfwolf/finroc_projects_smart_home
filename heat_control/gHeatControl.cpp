@@ -145,7 +145,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT100_GARAGE).ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Garage");
 
   auto pt1000_room = new shared::mPT1000(this, "PT1000 Room");
-  pt1000_room->par_pre_resistance.Set(1000);
+  pt1000_room->par_pre_resistance.Set(992.0);
   pt1000_room->par_reference_voltage.Set(5.0);
   pt1000_room->par_supply_voltage.Set(5.0);
   pt1000_room->in_voltage.ConnectTo(mcp_3008->out_voltage.at(tMCP3008Output::ePT1000_ROOM));
@@ -159,7 +159,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   filter_room->out_filtered_values.at(0).ConnectTo(controller->si_temperature_room);
 
   auto pt1000_boiler_middle = new shared::mPT1000(this, "PT1000 Boiler Middle");
-  pt1000_boiler_middle->par_pre_resistance.Set(1000);
+  pt1000_boiler_middle->par_pre_resistance.Set(993.0);
   pt1000_boiler_middle->par_reference_voltage.Set(5.0);
   pt1000_boiler_middle->par_supply_voltage.Set(5.0);
   pt1000_boiler_middle->in_voltage.ConnectTo(mcp_3008->out_voltage.at(tMCP3008Output::ePT1000_BOILER_MIDDLE));
@@ -173,7 +173,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   filter_boiler_middle->out_filtered_values.at(0).ConnectTo(controller->si_temperature_boiler_middle);
 
   auto pt100_boiler_bottom = new shared::mPT100(this, "PT100 Boiler Bottom");
-  pt100_boiler_bottom->par_pre_resistance.Set(100);
+  pt100_boiler_bottom->par_pre_resistance.Set(92.4);
   pt100_boiler_bottom->par_reference_voltage.Set(5.0);
   pt100_boiler_bottom->par_supply_voltage.Set(5.0);
   pt100_boiler_bottom->in_voltage.ConnectTo(mcp_3008->out_voltage.at(tMCP3008Output::ePT100_BOILER_BOTTOM));
@@ -187,7 +187,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   filter_boiler_bottom->out_filtered_values.at(0).ConnectTo(controller->si_temperature_boiler_bottom);
 
   auto pt100_boiler_top = new shared::mPT100(this, "PT100 Boiler Top");
-  pt100_boiler_top->par_pre_resistance.Set(100);
+  pt100_boiler_top->par_pre_resistance.Set(92.6);
   pt100_boiler_top->par_reference_voltage.Set(5.0);
   pt100_boiler_top->par_supply_voltage.Set(5.0);
   pt100_boiler_top->in_voltage.ConnectTo(mcp_3008->out_voltage.at(tMCP3008Output::ePT100_BOILER_TOP));
@@ -201,7 +201,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   filter_boiler_top->out_filtered_values.at(0).ConnectTo(controller->si_temperature_boiler_top);
 
   auto pt1000_solar = new shared::mPT1000(this, "PT1000 Solar");
-  pt1000_solar->par_pre_resistance.Set(1000);
+  pt1000_solar->par_pre_resistance.Set(991.0);
   pt1000_solar->par_reference_voltage.Set(5.0);
   pt1000_solar->par_supply_voltage.Set(5.0);
   pt1000_solar->in_voltage.ConnectTo(mcp_3008->out_voltage.at(tMCP3008Output::ePT1000_SOLAR));
@@ -215,7 +215,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   filter_solar->out_filtered_values.at(0).ConnectTo(controller->si_temperature_solar);
 
   auto pt1000_ground = new shared::mPT1000(this, "PT1000 Ground");
-  pt1000_ground->par_pre_resistance.Set(1000);
+  pt1000_ground->par_pre_resistance.Set(991.0);
   pt1000_ground->par_reference_voltage.Set(5.0);
   pt1000_ground->par_supply_voltage.Set(5.0);
   pt1000_ground->in_voltage.ConnectTo(mcp_3008->out_voltage.at(tMCP3008Output::ePT1000_GROUND));
@@ -229,7 +229,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   filter_ground->out_filtered_values.at(0).ConnectTo(controller->si_temperature_ground);
 
   auto pt100_furnace = new shared::mPT100(this, "PT100 Furnace");
-  pt100_furnace->par_pre_resistance.Set(100);
+  pt100_furnace->par_pre_resistance.Set(92.55);
   pt100_furnace->par_reference_voltage.Set(5.0);
   pt100_furnace->par_supply_voltage.Set(5.0);
   pt100_furnace->in_voltage.ConnectTo(mcp_3008->out_voltage.at(tMCP3008Output::ePT100_FURNACE));
@@ -243,7 +243,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   filter_furnace->out_filtered_values.at(0).ConnectTo(controller->si_temperature_furnace);
 
   auto pt100_garage = new shared::mPT100(this, "PT100 Garage");
-  pt100_garage->par_pre_resistance.Set(100);
+  pt100_garage->par_pre_resistance.Set(93.5);
   pt100_garage->par_reference_voltage.Set(5.0);
   pt100_garage->par_supply_voltage.Set(5.0);
   pt100_garage->in_voltage.ConnectTo(mcp_3008->out_voltage.at(tMCP3008Output::ePT100_GARAGE));

@@ -160,7 +160,7 @@ private:
       return resistance_pre;
     }
 
-    return resistance_pre * voltage_adc / (voltage_adc - voltage_ref);
+    return resistance_pre * voltage_adc / (voltage_ref - voltage_adc);
   }
 
   shared::tPT<TResistance> pt_;
