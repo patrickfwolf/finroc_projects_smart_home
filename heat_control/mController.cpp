@@ -68,7 +68,8 @@ mController::mController(core::tFrameworkElement *parent, const std::string &nam
   par_max_update_duration("Max Update Duration", this, std::chrono::seconds(10), "max_update_duration"),
   control_state_(nullptr),
   set_point_(23.0),
-  error_(tErrorState::eNO_ERROR)
+  error_(tErrorState::eNO_ERROR),
+  error_condition_(false)
 {
   control_state_ = std::unique_ptr<heat_control_states::tState>(new heat_control_states::tReady());
 }
@@ -207,12 +208,14 @@ void mController::Sense()
     {
       this->error_ = tErrorState::eIMPLAUSIBLE_TEMPERATURE;
     }
+    this->error_condition_ = true;
   }
   else
   {
     if (outdated_temperature)
     {
       this->error_ = tErrorState::eOUTDATED_TEMPERATURE;
+      this->error_condition_ = true;
     }
     else
     {
@@ -220,6 +223,11 @@ void mController::Sense()
     }
   }
   this->so_error_state.Publish(error_, current_time);
+  this->so_error_condition.Publish(error_condition_, current_time);
+  if(error_condition_)
+  {
+	  this->so_last_error_time.Publish(current_time, current_time);
+  }
 }
 
 //----------------------------------------------------------------------
@@ -276,6 +284,13 @@ void mController::Control()
   {
     control_state_ = std::move(next_state);
     co_heating_state.Publish(control_state_->GetCurrentState(), rrlib::time::Now());
+  }
+
+  // reactivate pump state in case of error recovery
+  if(error_condition_ and error_ == tErrorState::eNO_ERROR)
+  {
+	  error_condition_ = false;
+	  state_changed = true;
   }
 
   // control mode

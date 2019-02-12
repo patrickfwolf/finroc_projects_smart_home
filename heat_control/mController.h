@@ -123,7 +123,8 @@ public:
   tSensorOutput<bool> so_outdated_temperature_furnace;
   tSensorOutput<bool> so_outdated_temperature_garage;
   tSensorOutput<tErrorState> so_error_state;
-
+  tSensorOutput<bool> so_error_condition;
+  tSensorOutput<rrlib::time::tTimestamp> so_last_error_time;
 
   tControllerInput<tControlModeType> ci_control_mode;
   tControllerInput<bool> ci_manual_pump_online_solar;
@@ -197,6 +198,7 @@ private:
   std::unique_ptr<heat_control_states::tState> control_state_;
   rrlib::si_units::tCelsius<double> set_point_;
   tErrorState error_;
+  bool error_condition_;
   shared::tTemperatures temperatures_;
 
 };
