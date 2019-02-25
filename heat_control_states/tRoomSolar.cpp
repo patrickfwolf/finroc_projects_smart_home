@@ -61,7 +61,7 @@ void tRoomSolar::ComputeControlState(std::unique_ptr<tState> & state, const shar
 {
   // Raumtemperatur größer Solltemperatur oder Speichertemperatur größer als 50°C oder Speichertemperatur niedriger als Raumtemperatur
   if ((temperatures.GetRoom() >= (temperatures.GetRoomSetPoint() + shared::cROOM_DIFF_BOILER_HIGH)) or
-      (temperatures.GetBoiler() >= shared::cROOM_DIFF_BOILER_LOW) or
+      (temperatures.GetBoiler() >= shared::cROOM_BOILER_MAX) or
       (temperatures.GetBoiler() < temperatures.GetRoom() + shared::cROOM_DIFF_BOILER_LOW))
   {
     RRLIB_LOG_PRINT(DEBUG, "Room Solar -> Solar");
