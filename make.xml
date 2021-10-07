@@ -1,5 +1,5 @@
-<targets>  
-  
+<?xml version="1.0" encoding="UTF-8"?>
+<targets>
   <library name="shared_sensors">
     <sources>
       shared/mMCP3008.h
@@ -7,20 +7,17 @@
       shared/mMQ9.h
     </sources>
   </library>
-    
   <library name="shared_data_structures">
     <sources>
       shared/tPumps.h
       shared/tTemperatures.h
     </sources>
-  </library> 
-  
+  </library>
   <library name="shared_wiring_pi" optionallibs="wiringPi">
     <sources>
       shared/mBMP180.h
     </sources>
   </library>
-  
   <library name="heat_control_states">
     <sources>
       heat_control_states/tState.h
@@ -33,8 +30,7 @@
       heat_control_states/tGroundRoomSolar.cpp
       heat_control_states/tGround.cpp
     </sources>
-  </library>      
- 
+  </library>
   <finrocprogram name="HeatControl" optionallibs="wiringPi">
     <sources>
       heat_control/gHeatControl.cpp
@@ -43,7 +39,6 @@
       heat_control/pHeatControl.cpp
     </sources>
   </finrocprogram>
-  
   <finrocprogram name="VentControl" optionallibs="wiringPi">
     <sources>
       vent_control/mController.cpp
@@ -51,7 +46,6 @@
       vent_control/pVentControl.cpp
     </sources>
   </finrocprogram>
-  
   <finrocprogram name="UserInterface" optionallibs="wiringPi">
     <sources>
       user_interface/gUserInterface.cpp
@@ -59,5 +53,4 @@
       user_interface/mLED.cpp
     </sources>
   </finrocprogram>
-  
 </targets>

@@ -65,7 +65,8 @@ mController::mController(core::tFrameworkElement *parent, const std::string &nam
   tSenseControlModule(parent, name, true),
   ci_control_mode(tControlModeType::eAUTOMATIC),
   par_temperature_set_point_room("Temperature Set Point Room", this, rrlib::si_units::tCelsius<double>(23.0), "temperature_set_point_room"),
-  par_max_update_duration("Max Update Duration", this, std::chrono::seconds(10), "max_update_duration"),
+  par_max_update_duration("Max Temperature Update Duration", this, std::chrono::seconds(10), "max_update_duration"),
+  par_max_pump_update_duration("Max Pump Duration", this, std::chrono::seconds(45), "max_pump_duration"),
   control_state_(nullptr),
   set_point_(23.0),
   error_(tErrorState::eNO_ERROR),
@@ -224,9 +225,9 @@ void mController::Sense()
   }
   this->so_error_state.Publish(error_, current_time);
   this->so_error_condition.Publish(error_condition_, current_time);
-  if(error_condition_)
+  if (error_condition_)
   {
-	  this->so_last_error_time.Publish(current_time, current_time);
+    this->so_last_error_time.Publish(current_time, current_time);
   }
 }
 
@@ -287,10 +288,10 @@ void mController::Control()
   }
 
   // reactivate pump state in case of error recovery
-  if(error_condition_ and error_ == tErrorState::eNO_ERROR)
+  if (error_condition_ and error_ == tErrorState::eNO_ERROR)
   {
-	  error_condition_ = false;
-	  state_changed = true;
+    error_condition_ = false;
+    state_changed = true;
   }
 
   // control mode
@@ -298,30 +299,61 @@ void mController::Control()
   {
   case tControlModeType::eAUTOMATIC:
   {
-    if (state_changed)
-    {
-      // get pump settings
-      auto pumps = control_state_->GetPumpSettings();
+    // get pump settings
+    auto pumps = control_state_->GetPumpSettings();
 
-      // check if pump values are manually disabled
-      if (ci_disable_pump_ground.Get())
+    // check if pump value ground is manually disabled
+    if (ci_disable_pump_ground.Get())
+    {
+      if (pump_last_state_.at(tPumps::eGROUND) != false)
       {
-        co_pump_online_ground.Publish(false);
+        co_pump_online_ground.Publish(false, rrlib::time::Now());
+        this->pump_last_state_.at(tPumps::eGROUND) = false;
+        this->pump_switch_time_.at(tPumps::eGROUND) = rrlib::time::Now();
       }
-      else
+    }
+    else
+    {
+      // check if state differs from last state and update time window is valid
+      if (this->pump_last_state_.at(tPumps::eGROUND) != pumps.IsGroundOnline() and
+          this->pump_switch_time_.at(tPumps::eGROUND) + par_max_pump_update_duration.Get() < rrlib::time::Now())
       {
-        co_pump_online_ground.Publish(pumps.IsGroundOnline());
+        co_pump_online_ground.Publish(pumps.IsGroundOnline(), rrlib::time::Now());
+        this->pump_last_state_.at(tPumps::eGROUND) = pumps.IsGroundOnline();
+        this->pump_switch_time_.at(tPumps::eGROUND) = rrlib::time::Now();
       }
-      if (ci_disable_pump_room.Get())
+    }
+
+    // check if pump value ground is manually disabled
+    if (ci_disable_pump_room.Get())
+    {
+      if (pump_last_state_.at(tPumps::eROOM) != false)
       {
-        co_pump_online_room.Publish(false);
+        co_pump_online_room.Publish(false, rrlib::time::Now());
+        this->pump_last_state_.at(tPumps::eROOM) = false;
+        this->pump_switch_time_.at(tPumps::eROOM) = rrlib::time::Now();
       }
-      else
+    }
+    else
+    {
+      // check if state differs from last state and update time window is valid
+      if (this->pump_last_state_.at(tPumps::eROOM) != pumps.IsRoomOnline() and
+          this->pump_switch_time_.at(tPumps::eROOM) + par_max_pump_update_duration.Get() < rrlib::time::Now())
       {
-        co_pump_online_room.Publish(pumps.IsRoomOnline());
+        co_pump_online_room.Publish(pumps.IsRoomOnline(), rrlib::time::Now());
+        this->pump_last_state_.at(tPumps::eROOM) = pumps.IsRoomOnline();
+        this->pump_switch_time_.at(tPumps::eROOM) = rrlib::time::Now();
       }
-      // solar pump is never disabled
-      co_pump_online_solar.Publish(pumps.IsSolarOnline());
+    }
+
+    // solar pump cannot be disabled
+    // check if state differs from last state and update time window is valid
+    if (this->pump_last_state_.at(tPumps::eSOLAR) != pumps.IsSolarOnline() and
+        this->pump_switch_time_.at(tPumps::eSOLAR) + par_max_pump_update_duration.Get() < rrlib::time::Now())
+    {
+      co_pump_online_solar.Publish(pumps.IsSolarOnline(), rrlib::time::Now());
+      this->pump_last_state_.at(tPumps::eSOLAR) = pumps.IsSolarOnline();
+      this->pump_switch_time_.at(tPumps::eSOLAR) = rrlib::time::Now();
     }
   }
   break;

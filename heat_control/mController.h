@@ -77,6 +77,13 @@ enum class tErrorState
   eIMPLAUSIBLE_OUTDATED_TEMPERATURE
 };
 
+enum tPumps
+{
+  eSOLAR,
+  eGROUND,
+  eROOM
+};
+
 //----------------------------------------------------------------------
 // Class declaration
 //----------------------------------------------------------------------
@@ -150,9 +157,12 @@ public:
   tControllerOutput<heat_control_states::tCurrentState> co_heating_state;
   tControllerOutput<rrlib::si_units::tCelsius<double>> co_set_point_temperature;
 
-
+  // set point temperature
   tParameter<rrlib::si_units::tCelsius<double>> par_temperature_set_point_room;
+  // max allow duration for sensor timeout
   tParameter<rrlib::time::tDuration> par_max_update_duration;
+  // max allow duration until pump changes
+  tParameter<rrlib::time::tDuration> par_max_pump_update_duration;
 
 //----------------------------------------------------------------------
 // Public methods and typedefs
@@ -200,6 +210,10 @@ private:
   tErrorState error_;
   bool error_condition_;
   shared::tTemperatures temperatures_;
+  std::array<rrlib::time::tTimestamp, tPumps::eROOM> pump_switch_time_;
+  std::array<bool, tPumps::eROOM> pump_last_state_;
+
+
 
 };
 
