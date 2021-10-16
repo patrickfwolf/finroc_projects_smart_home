@@ -211,7 +211,7 @@ private:
   tErrorState error_;
   bool error_condition_;
   shared::tTemperatures temperatures_;
-  std::array<rrlib::time::tTimestamp, tPumps::eROOM> pump_switch_time_;
+  std::array<rrlib::time::tTimestamp, tPumps::eNUMBER_STATES> pump_switch_time_;
   std::array<bool, tPumps::eNUMBER_STATES> pump_last_state_;
 
 
