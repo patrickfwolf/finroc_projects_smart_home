@@ -79,9 +79,10 @@ enum class tErrorState
 
 enum tPumps
 {
-  eSOLAR,
+  eSOLAR = 0,
   eGROUND,
-  eROOM
+  eROOM,
+  eNUMBER_STATES
 };
 
 //----------------------------------------------------------------------
@@ -211,7 +212,7 @@ private:
   bool error_condition_;
   shared::tTemperatures temperatures_;
   std::array<rrlib::time::tTimestamp, tPumps::eROOM> pump_switch_time_;
-  std::array<bool, tPumps::eROOM> pump_last_state_;
+  std::array<bool, tPumps::eNUMBER_STATES> pump_last_state_;
 
 
 
