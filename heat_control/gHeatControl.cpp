@@ -96,9 +96,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   ci_control_mode(tControlModeType::eAUTOMATIC),
   ci_manual_pump_solar(false),
   ci_manual_pump_room(false),
-  ci_manual_pump_ground(false),
-  ci_disable_pump_room(false),
-  ci_disable_pump_ground(false)
+  ci_manual_pump_ground(false)
 {
   auto controller = new mController(this, "Controller");
   controller->par_temperature_set_point_room.Set(23.0);
@@ -107,8 +105,6 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   this->ci_manual_pump_ground.ConnectTo(controller->ci_manual_pump_online_ground);
   this->ci_manual_pump_room.ConnectTo(controller->ci_manual_pump_online_room);
   this->ci_manual_pump_solar.ConnectTo(controller->ci_manual_pump_online_solar);
-  this->ci_disable_pump_ground.ConnectTo(controller->ci_disable_pump_ground);
-  this->ci_disable_pump_room.ConnectTo(controller->ci_disable_pump_room);
   this->co_control_mode.ConnectTo(controller->co_control_mode);
   this->co_heating_state.ConnectTo(controller->co_heating_state);
   this->so_error_state.ConnectTo(controller->so_error_state);

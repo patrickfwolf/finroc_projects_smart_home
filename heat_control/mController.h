@@ -65,8 +65,6 @@ enum class tControlModeType
 {
   eSTOP,
   eAUTOMATIC,
-  eAUTOMATIC_NO_GROUND,
-  eAUTOMATIC_SOLAR_ONLY,
   eMANUAL
 };
 
@@ -152,9 +150,6 @@ public:
   tControllerInput<bool> ci_manual_pump_online_solar;
   tControllerInput<bool> ci_manual_pump_online_ground;
   tControllerInput<bool> ci_manual_pump_online_room;
-
-  tControllerInput<bool> ci_disable_pump_room;
-  tControllerInput<bool> ci_disable_pump_ground;
 
   tControllerInput<data_ports::tEvent> ci_increase_set_point_temperature;
   tControllerInput<data_ports::tEvent> ci_decrease_set_point_temperature;
