@@ -41,6 +41,7 @@
 //----------------------------------------------------------------------
 // External includes (system with <>, local with "")
 //----------------------------------------------------------------------
+#include <fstream>
 
 //----------------------------------------------------------------------
 // Internal includes with ""
@@ -83,6 +84,19 @@ enum tPumps
   eGROUND,
   eROOM,
   eNUMBER_STATES
+};
+
+enum tTemperatureSensors
+{
+  eBOILER_BOTTOM_SENSOR = 0,
+  eBOILER_MIDDLE_SENSOR,
+  eBOILER_TOP_SENSOR,
+  eFURNACE_SENSOR,
+  eGARAGE_SENSOR,
+  eGROUND_SENSOR,
+  eROOM_SENSOR,
+  eSOLAR_SENSOR,
+  eSENSOR_COUNT
 };
 
 //----------------------------------------------------------------------
@@ -164,6 +178,10 @@ public:
   tParameter<rrlib::time::tDuration> par_max_update_duration;
   // max allow duration until pump changes
   tParameter<rrlib::time::tDuration> par_max_pump_update_duration;
+  // logging frequency of temperatures (e.g. each hour)
+  tParameter<rrlib::time::tDuration> par_temperature_log_interval;
+  // logging frequency of temperature update errors (e.g. each 30min)
+  tParameter<rrlib::time::tDuration> par_temperature_error_log_interval;
 
 //----------------------------------------------------------------------
 // Public methods and typedefs
@@ -182,7 +200,7 @@ protected:
    * The destructor of modules is declared protected to avoid accidental deletion. Deleting
    * modules is already handled by the framework.
    */
-  ~mController();
+  virtual ~mController();
 
 //----------------------------------------------------------------------
 // Private fields and methods
@@ -199,20 +217,30 @@ private:
    * Checks if a temperature value is within bounds
    * @return within bounds
    */
-  bool IsTemperatureInBounds(const rrlib::si_units::tCelsius<double> & temperature,
-                             const rrlib::si_units::tCelsius<double> & upper_bound,
-                             const rrlib::si_units::tCelsius<double> & lower_bound) const
+  inline bool IsTemperatureInBounds(const rrlib::si_units::tCelsius<double> & temperature,
+                                    const rrlib::si_units::tCelsius<double> & upper_bound,
+                                    const rrlib::si_units::tCelsius<double> & lower_bound) const
   {
     return (temperature.ValueFactored() <= upper_bound.ValueFactored()) and (temperature.ValueFactored() >= lower_bound.ValueFactored());
   }
 
   std::unique_ptr<heat_control_states::tState> control_state_;
   rrlib::si_units::tCelsius<double> set_point_;
+
   tErrorState error_;
   bool error_condition_;
+
   shared::tTemperatures temperatures_;
+  std::array<bool, tTemperatureSensors::eSENSOR_COUNT> temperature_update_error_condition_;
+
   std::array<rrlib::time::tTimestamp, tPumps::eNUMBER_STATES> pump_switch_time_;
   std::array<bool, tPumps::eNUMBER_STATES> pump_last_state_;
+
+  std::fstream temperature_log_file_;
+  std::fstream event_log_file_;
+  rrlib::time::tTimestamp last_temperature_logging_time_;
+  rrlib::time::tTimestamp last_temperature_outdated_logging_time_;
+  rrlib::time::tTimestamp last_temperature_implausible_logging_time_;
 
 
 
