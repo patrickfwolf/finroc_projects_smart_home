@@ -83,9 +83,6 @@ public:
   tControllerInput<bool> ci_manual_pump_room;
   tControllerInput<bool> ci_manual_pump_ground;
 
-  tControllerInput<bool> ci_disable_pump_room;
-  tControllerInput<bool> ci_disable_pump_ground;
-
   tSensorInput<rrlib::si_units::tCelsius<double>> si_temperature_room_external;
 
   tSensorOutput<rrlib::si_units::tCelsius<double>> so_temperature_boiler_top;

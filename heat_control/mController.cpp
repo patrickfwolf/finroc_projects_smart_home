@@ -189,12 +189,12 @@ void mController::Sense()
   bool outdated = false;
   outdated = (current_time - par_max_update_duration.Get() > si_temperature_boiler_bottom.GetTimestamp()) ? true : false;
   so_outdated_temperature_boiler_bottom.Publish(outdated, current_time);
-  outdated_temperature = outdated_temperature or outdated;
+  //outdated_temperature = outdated_temperature or outdated;
   temperature_update_error_condition_.at(tTemperatureSensors::eBOILER_BOTTOM_SENSOR) = outdated;
 
   outdated = (current_time - par_max_update_duration.Get() > si_temperature_boiler_top.GetTimestamp()) ? true : false;
   so_outdated_temperature_boiler_top.Publish(outdated, current_time);
-  outdated_temperature = outdated_temperature or outdated;
+  //outdated_temperature = outdated_temperature or outdated;
   temperature_update_error_condition_.at(tTemperatureSensors::eBOILER_TOP_SENSOR) = outdated;
 
   outdated = (current_time - par_max_update_duration.Get() > si_temperature_boiler_middle.GetTimestamp()) ? true : false;
@@ -204,12 +204,12 @@ void mController::Sense()
 
   outdated = (current_time - par_max_update_duration.Get() > si_temperature_furnace.GetTimestamp()) ? true : false;
   so_outdated_temperature_furnace.Publish(outdated, current_time);
-  outdated_temperature = outdated_temperature or outdated;
+  //outdated_temperature = outdated_temperature or outdated;
   temperature_update_error_condition_.at(tTemperatureSensors::eFURNACE_SENSOR) = outdated;
 
   outdated = (current_time - par_max_update_duration.Get() > si_temperature_garage.GetTimestamp()) ? true : false;
   so_outdated_temperature_garage.Publish(outdated, current_time);
-  outdated_temperature = outdated_temperature or outdated;
+  //outdated_temperature = outdated_temperature or outdated;
   temperature_update_error_condition_.at(tTemperatureSensors::eGARAGE_SENSOR) = outdated;
 
   outdated = (current_time - par_max_update_duration.Get() > si_temperature_ground.GetTimestamp()) ? true : false;
@@ -246,8 +246,9 @@ void mController::Sense()
         }
       }
       event_log_file_ << ")\n";
+
+      last_temperature_outdated_logging_time_ = current_time;
     }
-    last_temperature_outdated_logging_time_ = current_time;
   }
   if (event_log_file_.good() and previous_outdated_temperature and not outdated_temperature)
   {
@@ -273,19 +274,19 @@ void mController::Sense()
     so_implausible_temperature_ground.Publish(implausible, current_time);
 
     implausible = not IsTemperatureInBounds(si_temperature_garage.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
-    implausible_temperature = implausible_temperature or implausible;
+    //implausible_temperature = implausible_temperature or implausible;
     so_implausible_temperature_garage.Publish(implausible, current_time);
 
     implausible = not IsTemperatureInBounds(si_temperature_furnace.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
-    implausible_temperature = implausible_temperature or implausible;
+    //implausible_temperature = implausible_temperature or implausible;
     so_implausible_temperature_furnace.Publish(implausible, current_time);
 
     implausible = not IsTemperatureInBounds(si_temperature_boiler_bottom.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
-    implausible_temperature = implausible_temperature or implausible;
+    //implausible_temperature = implausible_temperature or implausible;
     so_implausible_temperature_boiler_bottom.Publish(implausible, current_time);
 
     implausible = not IsTemperatureInBounds(si_temperature_boiler_top.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
-    implausible_temperature = implausible_temperature or implausible;
+    //implausible_temperature = implausible_temperature or implausible;
     so_implausible_temperature_boiler_top.Publish(implausible, current_time);
 
     implausible = not IsTemperatureInBounds(si_temperature_boiler_middle.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
@@ -306,8 +307,9 @@ void mController::Sense()
         event_log_file_ << "Speicher (oben) " << si_temperature_boiler_top.Get() << "; ";
         event_log_file_ << "Speicher (mitte) " << si_temperature_boiler_middle.Get() << "; ";
         event_log_file_ << "Speicher (unten) " << si_temperature_boiler_bottom.Get() << ")\n";
+
+        last_temperature_implausible_logging_time_ = current_time;
       }
-      last_temperature_implausible_logging_time_ = current_time;
     }
 
     if (event_log_file_.good() and
@@ -338,14 +340,39 @@ void mController::Sense()
       si_temperature_ground.Get(),
       set_point_
     };
+
+    // log temperatures
+    if (temperature_log_file_.good())
+    {
+      if (last_temperature_logging_time_ + par_temperature_log_interval.Get() < current_time)
+      {
+        temperature_log_file_ << rrlib::time::Now() << ",";
+        temperature_log_file_ << si_temperature_boiler_bottom.Get().ValueFactored() << ", ";
+        temperature_log_file_ << si_temperature_boiler_middle.Get().ValueFactored() << ", ";
+        temperature_log_file_ << si_temperature_boiler_top.Get().ValueFactored() << ", ";
+        temperature_log_file_ << si_temperature_furnace.Get().ValueFactored() << ", ";
+        temperature_log_file_ << si_temperature_garage.Get().ValueFactored() << ", ";
+        temperature_log_file_ << si_temperature_ground.Get().ValueFactored() << ", ";
+        temperature_log_file_ << si_temperature_room.Get().ValueFactored() << ", ";
+        temperature_log_file_ << si_temperature_solar.Get().ValueFactored() << "\n";
+
+        last_temperature_logging_time_ = current_time;
+        temperature_log_file_.flush();
+      }
+    }
   }
 
+  // log error condition recovery
   if (event_log_file_.good() and this->error_condition_
       and not implausible_temperature
       and not outdated_temperature)
   {
     event_log_file_ << rrlib::time::Now() << " Zustand: Steuerung ist wieder im fehlerfreien Zustand.\n";
   }
+
+  // flush to drive
+  event_log_file_.flush();
+
 
   // determine error state
   if (implausible_temperature)
@@ -403,15 +430,6 @@ void mController::Control()
     co_control_mode.Publish(ci_control_mode.Get(), ci_control_mode.GetTimestamp());
   }
 
-  // error handling
-  if ((this->error_ != tErrorState::eNO_ERROR) and not(ci_control_mode.Get() == tControlModeType::eMANUAL))
-  {
-    co_pump_online_ground.Publish(false);
-    co_pump_online_room.Publish(false);
-    co_pump_online_solar.Publish(false);
-    return;
-  }
-
   // handle set point
   if (ci_increase_set_point_temperature.HasChanged())
   {
@@ -442,6 +460,16 @@ void mController::Control()
     {
       event_log_file_ << rrlib::time::Now() << " Zurücksetzung der Solltemperatur auf " << set_point_ << "\n";
     }
+  }
+
+  // error handling for automatic state
+  // TODO: don't be so restrictive, but disable only parts of the functionality
+  if ((this->error_ != tErrorState::eNO_ERROR) and not(ci_control_mode.Get() == tControlModeType::eMANUAL))
+  {
+    co_pump_online_ground.Publish(false);
+    co_pump_online_room.Publish(false);
+    co_pump_online_solar.Publish(false);
+    return;
   }
 
   // determine state
@@ -488,18 +516,6 @@ void mController::Control()
     // get pump settings
     auto pumps = control_state_->GetPumpSettings();
 
-    // check if pump value ground is manually disabled
-    if (ci_disable_pump_ground.Get())
-    {
-      if (pump_last_state_.at(tPumps::eGROUND) != false)
-      {
-        co_pump_online_ground.Publish(false, rrlib::time::Now());
-        this->pump_last_state_.at(tPumps::eGROUND) = false;
-        this->pump_switch_time_.at(tPumps::eGROUND) = rrlib::time::Now();
-      }
-    }
-    else
-    {
       // check if state differs from last state and update time window is valid
       if (this->pump_last_state_.at(tPumps::eGROUND) != pumps.IsGroundOnline() and
           this->pump_switch_time_.at(tPumps::eGROUND) + par_max_pump_update_duration.Get() < rrlib::time::Now())
@@ -507,21 +523,20 @@ void mController::Control()
         co_pump_online_ground.Publish(pumps.IsGroundOnline(), rrlib::time::Now());
         this->pump_last_state_.at(tPumps::eGROUND) = pumps.IsGroundOnline();
         this->pump_switch_time_.at(tPumps::eGROUND) = rrlib::time::Now();
-      }
-    }
 
-    // check if pump value ground is manually disabled
-    if (ci_disable_pump_room.Get())
-    {
-      if (pump_last_state_.at(tPumps::eROOM) != false)
-      {
-        co_pump_online_room.Publish(false, rrlib::time::Now());
-        this->pump_last_state_.at(tPumps::eROOM) = false;
-        this->pump_switch_time_.at(tPumps::eROOM) = rrlib::time::Now();
+        if (event_log_file_.good())
+        {
+      	  if(pumps.IsGroundOnline())
+      	  {
+      		  event_log_file_ << rrlib::time::Now() << " Automatischer Zustandswechsel: Aktiviere Pumpe Bodenplatte.\n";
+      	  }
+      	  else
+      	  {
+      		  event_log_file_ << rrlib::time::Now() << " Automatischer Zustandswechsel: Deaktiviere Pumpe Bodenplatte.\n";
+      	  }
+        }
       }
-    }
-    else
-    {
+
       // check if state differs from last state and update time window is valid
       if (this->pump_last_state_.at(tPumps::eROOM) != pumps.IsRoomOnline() and
           this->pump_switch_time_.at(tPumps::eROOM) + par_max_pump_update_duration.Get() < rrlib::time::Now())
@@ -529,8 +544,19 @@ void mController::Control()
         co_pump_online_room.Publish(pumps.IsRoomOnline(), rrlib::time::Now());
         this->pump_last_state_.at(tPumps::eROOM) = pumps.IsRoomOnline();
         this->pump_switch_time_.at(tPumps::eROOM) = rrlib::time::Now();
+
+        if (event_log_file_.good())
+        {
+      	  if(pumps.IsRoomOnline())
+      	  {
+      		  event_log_file_ << rrlib::time::Now() << " Automatischer Zustandswechsel: Aktiviere Pumpe Raum.\n";
+      	  }
+      	  else
+      	  {
+      		  event_log_file_ << rrlib::time::Now() << " Automatischer Zustandswechsel: Deaktiviere Pumpe Raum.\n";
+      	  }
+        }
       }
-    }
 
     // solar pump cannot be disabled
     // check if state differs from last state and update time window is valid
@@ -540,6 +566,18 @@ void mController::Control()
       co_pump_online_solar.Publish(pumps.IsSolarOnline(), rrlib::time::Now());
       this->pump_last_state_.at(tPumps::eSOLAR) = pumps.IsSolarOnline();
       this->pump_switch_time_.at(tPumps::eSOLAR) = rrlib::time::Now();
+
+      if (event_log_file_.good())
+      {
+    	  if(pumps.IsSolarOnline())
+    	  {
+    		  event_log_file_ << rrlib::time::Now() << " Automatischer Zustandswechsel: Aktiviere Pumpe Solar.\n";
+    	  }
+    	  else
+    	  {
+    		  event_log_file_ << rrlib::time::Now() << " Automatischer Zustandswechsel: Deaktiviere Pumpe Solar.\n";
+    	  }
+      }
     }
   }
   break;
@@ -556,43 +594,50 @@ void mController::Control()
     if (ci_manual_pump_online_ground.HasChanged())
     {
       co_pump_online_ground.Publish(ci_manual_pump_online_ground.Get());
+
+      if (event_log_file_.good())
+      {
+    	  if(ci_manual_pump_online_ground.Get())
+    	  {
+    		  event_log_file_ << rrlib::time::Now() << " Manueller Zustandswechsel: Aktiviere Pumpe Bodenplatte.\n";
+    	  }
+    	  else
+    	  {
+    		  event_log_file_ << rrlib::time::Now() << " Manueller Zustandswechsel: Deaktiviere Pumpe Bodenplatte.\n";
+    	  }
+      }
     }
     if (ci_manual_pump_online_room.HasChanged())
     {
       co_pump_online_room.Publish(ci_manual_pump_online_room.Get());
+
+      if (event_log_file_.good())
+      {
+    	  if(ci_manual_pump_online_room.Get())
+    	  {
+    		  event_log_file_ << rrlib::time::Now() << " Manueller Zustandswechsel: Aktiviere Pumpe Raum.\n";
+    	  }
+    	  else
+    	  {
+    		  event_log_file_ << rrlib::time::Now() << " Manueller Zustandswechsel: Deaktiviere Pumpe Raum.\n";
+    	  }
+      }
     }
     if (ci_manual_pump_online_solar.HasChanged())
     {
       co_pump_online_solar.Publish(ci_manual_pump_online_solar.Get());
-    }
-  }
-  break;
-  case tControlModeType::eAUTOMATIC_NO_GROUND:
-  {
-    if (state_changed)
-    {
-      auto pumps = control_state_->GetPumpSettings();
-      if (ci_disable_pump_room.Get())
+
+      if (event_log_file_.good())
       {
-        co_pump_online_room.Publish(false);
+    	  if(ci_manual_pump_online_room.Get())
+    	  {
+    		  event_log_file_ << rrlib::time::Now() << " Manueller Zustandswechsel: Aktiviere Pumpe Solar.\n";
+    	  }
+    	  else
+    	  {
+    		  event_log_file_ << rrlib::time::Now() << " Manueller Zustandswechsel: Deaktiviere Pumpe Solar.\n";
+    	  }
       }
-      else
-      {
-        co_pump_online_room.Publish(pumps.IsRoomOnline());
-      }
-      co_pump_online_ground.Publish(false);
-      co_pump_online_solar.Publish(pumps.IsSolarOnline());
-    }
-  }
-  break;
-  case tControlModeType::eAUTOMATIC_SOLAR_ONLY:
-  {
-    if (state_changed)
-    {
-      auto pumps = control_state_->GetPumpSettings();
-      co_pump_online_room.Publish(false);
-      co_pump_online_ground.Publish(false);
-      co_pump_online_solar.Publish(pumps.IsSolarOnline());
     }
   }
   break;
