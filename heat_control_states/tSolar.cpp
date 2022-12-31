@@ -66,9 +66,9 @@ void tSolar::ComputeControlState(std::unique_ptr<tState> & state, const shared::
   }
 
   // Room under set-point and boiler under high threshold temperature and boiler temperature higher than room
-  if ((temperatures.GetRoom() < (temperatures.GetRoomSetPoint() - shared::cROOM_DIFF_SETPOINT_LOW)) and
+  if ((temperatures.GetRoomSetPoint() - temperatures.GetRoom() >= shared::cROOM_DIFF_SETPOINT_HIGH) and
       (temperatures.GetBoiler() < shared::cROOM_BOILER_MAX) and
-      (temperatures.GetBoiler() > temperatures.GetRoom() + shared::cROOM_DIFF_BOILER_HIGH))
+      (temperatures.GetBoiler() - temperatures.GetRoom() >= shared::cROOM_DIFF_BOILER_HIGH))
   {
     RRLIB_LOG_PRINT(DEBUG, "Solar -> Room Solar");
 
@@ -78,7 +78,7 @@ void tSolar::ComputeControlState(std::unique_ptr<tState> & state, const shared::
   }
 
   // Boiler higher than ground temperature and boiler warmer than minimum temperature
-  if ((temperatures.GetBoiler() > temperatures.GetGround() + shared::cGROUND_DIFF_BOILER_HIGH) and
+  if ((temperatures.GetBoiler() - temperatures.GetGround() >= shared::cGROUND_DIFF_BOILER_HIGH) and
       (temperatures.GetBoiler() > shared::cGROUND_BOILER_MIN))
   {
     RRLIB_LOG_PRINT(DEBUG, "Solar -> Ground Solar");

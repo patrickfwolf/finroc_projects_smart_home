@@ -57,7 +57,7 @@ void tGround::ComputeControlState(std::unique_ptr<tState> & state, const shared:
 
   // Speichertemperatur niedriger als Bodentemperatur oder Speichertemperatur < 45°C
   if ((temperatures.GetBoiler() < shared::cGROUND_BOILER_MIN) or
-      (temperatures.GetBoiler() < temperatures.GetGround() - shared::cGROUND_DIFF_BOILER_LOW))
+      (temperatures.GetBoiler() - temperatures.GetGround() < shared::cGROUND_DIFF_BOILER_LOW))
   {
     RRLIB_LOG_PRINT(DEBUG, "Ground -> Ready");
     state = std::unique_ptr<tState>(new tReady());
@@ -66,9 +66,9 @@ void tGround::ComputeControlState(std::unique_ptr<tState> & state, const shared:
   }
 
   // Raumtemperatur über Sollwert +0,8°C und Speichertemperatur höher als Raumtemperatur und Speichertemperatur < 50°C
-  if ((temperatures.GetRoom() < (temperatures.GetRoomSetPoint() + shared::cROOM_DIFF_SETPOINT_HIGH)) and
-      (temperatures.GetBoiler() > temperatures.GetRoom() + shared::cROOM_DIFF_BOILER_HIGH) and
-      (temperatures.GetBoiler() < shared::cROOM_BOILER_MAX))
+  if ((temperatures.GetRoomSetPoint() - temperatures.GetRoom() >= shared::cROOM_DIFF_SETPOINT_HIGH) and
+      (temperatures.GetBoiler() < shared::cROOM_BOILER_MAX) and
+      (temperatures.GetBoiler() - temperatures.GetRoom() >= shared::cROOM_DIFF_BOILER_HIGH))
   {
     RRLIB_LOG_PRINT(DEBUG, "Ground -> Room Ground");
     state = std::unique_ptr<tState>(new tRoomGround());

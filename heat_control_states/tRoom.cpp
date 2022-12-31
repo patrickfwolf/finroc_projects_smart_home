@@ -58,9 +58,9 @@ namespace heat_control_states
 void tRoom::ComputeControlState(std::unique_ptr<tState> & state, const shared::tTemperatures &temperatures)
 {
   // room warm enough or boiler too hot or boiler not warm enough
-  if ((temperatures.GetRoom() >= (temperatures.GetRoomSetPoint() + shared::cROOM_DIFF_SETPOINT_HIGH)) or
+  if ((temperatures.GetRoomSetPoint() - temperatures.GetRoom() < shared::cROOM_DIFF_SETPOINT_LOW) or
       (temperatures.GetBoiler() >= shared::cROOM_BOILER_MAX) or
-      (temperatures.GetBoiler() < temperatures.GetRoom() + shared::cROOM_DIFF_BOILER_HIGH))
+      (temperatures.GetBoiler() - temperatures.GetRoom() < shared::cROOM_DIFF_BOILER_LOW))
   {
     RRLIB_LOG_PRINT(DEBUG, "Room -> Ready");
     state = std::unique_ptr<tState>(new tReady());
@@ -78,7 +78,7 @@ void tRoom::ComputeControlState(std::unique_ptr<tState> & state, const shared::t
   }
 
   // Boiler warmer than ground and hotter than minimum temperature
-  if ((temperatures.GetBoiler() > temperatures.GetGround() + shared::cGROUND_DIFF_BOILER_HIGH) and
+  if ((temperatures.GetBoiler() - temperatures.GetGround() >= shared::cGROUND_DIFF_BOILER_HIGH) and
       (temperatures.GetBoiler() > shared::cGROUND_BOILER_MIN))
   {
     RRLIB_LOG_PRINT(DEBUG, "Room -> Room Ground");

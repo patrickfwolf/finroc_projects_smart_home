@@ -92,6 +92,10 @@ mController::mController(core::tFrameworkElement *parent, const std::string &nam
 {
   control_state_ = std::unique_ptr<heat_control_states::tState>(new heat_control_states::tReady());
 
+  ci_increase_set_point_temperature.ResetChanged();
+  ci_decrease_set_point_temperature.ResetChanged();
+  ci_reset_set_point_temperature.ResetChanged();
+
   // start logging
   std::string temperature_filename = rrlib::util::fileio::ShellExpandFilename("$HOME/temperatures_" + rrlib::time::ToFilenameCompatibleString(rrlib::time::Now()) + ".txt");
   temperature_log_file_.open(temperature_filename, std::fstream::in | std::fstream::out | std::fstream::app);
@@ -452,7 +456,15 @@ void mController::Control()
 
     if (event_log_file_.good())
     {
-      event_log_file_ << rrlib::time::Now() << " Automatischer Zustandswechsel: <" << make_builder::GetEnumString(control_state_->GetCurrentState()) << ">\n";
+      event_log_file_ << rrlib::time::Now() << " Automatischer Zustandswechsel: <" << make_builder::GetEnumString(control_state_->GetCurrentState());
+      event_log_file_ << ">   (Raum " << si_temperature_room.Get() << "; ";
+      event_log_file_ << "Solar " << si_temperature_solar.Get() << "; ";
+      event_log_file_ << "Bodenplatte " << si_temperature_ground.Get() << "; ";
+      event_log_file_ << "Ofen " << si_temperature_furnace.Get() << "; ";
+      event_log_file_ << "Garage " << si_temperature_garage.Get() << "; ";
+      event_log_file_ << "Speicher (oben) " << si_temperature_boiler_top.Get() << "; ";
+      event_log_file_ << "Speicher (mitte) " << si_temperature_boiler_middle.Get() << "; ";
+      event_log_file_ << "Speicher (unten) " << si_temperature_boiler_bottom.Get() << ")\n";
     }
   }
 
