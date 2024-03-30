@@ -422,9 +422,9 @@ void mController::Control()
   // reset if control mode changes
   if (ci_control_mode.HasChanged())
   {
-    co_pump_online_ground.Publish(false);
-    co_pump_online_room.Publish(false);
-    co_pump_online_solar.Publish(false);
+    co_pump_online_ground.Publish(false, rrlib::time::Now());
+    co_pump_online_room.Publish(false, rrlib::time::Now());
+    co_pump_online_solar.Publish(false, rrlib::time::Now());
     if (control_state_ != nullptr)
     {
       control_state_ = std::unique_ptr<heat_control_states::tState>(new heat_control_states::tReady());
@@ -493,24 +493,27 @@ void mController::Control()
     if (boiler_sensor_failure_ or room_sensor_failure_)
     {
       pump_room_error = true;
+      co_pump_online_room.Publish(false, rrlib::time::Now());
     }
 
     // error affects solar pump -> boiler temperature outdated or implausible | solar temperature outdated or implausible
     if (boiler_sensor_failure_ or solar_sensor_failure_)
     {
       pump_solar_error = true;
+      co_pump_online_solar.Publish(false, rrlib::time::Now());
     }
 
     // error affects ground pump -> boiler temperature outdated or implausible | ground temperature outdated or implausible
     if (boiler_sensor_failure_ or ground_sensor_failure_)
     {
       pump_ground_error = true;
+      co_pump_online_ground.Publish(false, rrlib::time::Now());
     }
   }
 
-  co_pump_error_ground.Publish(pump_ground_error);
-  co_pump_error_room.Publish(pump_room_error);
-  co_pump_error_solar.Publish(pump_solar_error);
+  co_pump_error_ground.Publish(pump_ground_error, rrlib::time::Now());
+  co_pump_error_room.Publish(pump_room_error, rrlib::time::Now());
+  co_pump_error_solar.Publish(pump_solar_error, rrlib::time::Now());
 
   // determine state
   bool state_changed = false;
@@ -665,9 +668,9 @@ void mController::Control()
   case tControlModeType::eSTOP:
     if (ci_control_mode.HasChanged())
     {
-      co_pump_online_ground.Publish(false);
-      co_pump_online_room.Publish(false);
-      co_pump_online_solar.Publish(false);
+      co_pump_online_ground.Publish(false, rrlib::time::Now());
+      co_pump_online_room.Publish(false, rrlib::time::Now());
+      co_pump_online_solar.Publish(false, rrlib::time::Now());
     }
     break;
   case tControlModeType::eMANUAL:
@@ -723,42 +726,42 @@ void mController::Control()
   }
   break;
   default:
-    co_pump_online_ground.Publish(false);
-    co_pump_online_room.Publish(false);
-    co_pump_online_solar.Publish(false);
+    co_pump_online_ground.Publish(false, rrlib::time::Now());
+    co_pump_online_room.Publish(false, rrlib::time::Now());
+    co_pump_online_solar.Publish(false, rrlib::time::Now());
   };
 
   // led control
   auto boiler = si_temperature_boiler_middle.Get();
   if (boiler <= rrlib::si_units::tCelsius<double>(25.0))
   {
-    co_led_online_green.Publish(false);
-    co_led_online_yellow.Publish(false);
-    co_led_online_red.Publish(true);
+    co_led_online_green.Publish(false, rrlib::time::Now());
+    co_led_online_yellow.Publish(false, rrlib::time::Now());
+    co_led_online_red.Publish(true, rrlib::time::Now());
   }
   else if (boiler > rrlib::si_units::tCelsius<double>(25.0) && boiler <= rrlib::si_units::tCelsius<double>(30.0))
   {
-    co_led_online_green.Publish(false);
-    co_led_online_yellow.Publish(true);
-    co_led_online_red.Publish(true);
+    co_led_online_green.Publish(false, rrlib::time::Now());
+    co_led_online_yellow.Publish(true, rrlib::time::Now());
+    co_led_online_red.Publish(true, rrlib::time::Now());
   }
   else if (boiler > rrlib::si_units::tCelsius<double>(30.0) && boiler <= rrlib::si_units::tCelsius<double>(40.0))
   {
-    co_led_online_green.Publish(false);
-    co_led_online_yellow.Publish(true);
-    co_led_online_red.Publish(false);
+    co_led_online_green.Publish(false, rrlib::time::Now());
+    co_led_online_yellow.Publish(true, rrlib::time::Now());
+    co_led_online_red.Publish(false, rrlib::time::Now());
   }
   else if (boiler > rrlib::si_units::tCelsius<double>(40.0) && boiler <= rrlib::si_units::tCelsius<double>(45.0))
   {
-    co_led_online_green.Publish(true);
-    co_led_online_yellow.Publish(true);
-    co_led_online_red.Publish(false);
+    co_led_online_green.Publish(true, rrlib::time::Now());
+    co_led_online_yellow.Publish(true, rrlib::time::Now());
+    co_led_online_red.Publish(false, rrlib::time::Now());
   }
   else if (boiler > rrlib::si_units::tCelsius<double>(45.0))
   {
-    co_led_online_green.Publish(true);
-    co_led_online_yellow.Publish(false);
-    co_led_online_red.Publish(false);
+    co_led_online_green.Publish(true, rrlib::time::Now());
+    co_led_online_yellow.Publish(false, rrlib::time::Now());
+    co_led_online_red.Publish(false, rrlib::time::Now());
   }
 
 }
