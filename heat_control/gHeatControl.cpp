@@ -69,7 +69,7 @@ namespace heat_control
 enum tMCP3008Output
 {
   ePT1000_SOLAR = 0,
-  ePT1000_ROOM,
+  ePT100_ROOM,
   ePT1000_BOILER_MIDDLE,
   ePT1000_GROUND,
   ePT100_BOILER_TOP,
@@ -132,7 +132,7 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   auto mcp_3008 = new shared::mMCP3008<tMCP3008Output::eCOUNT>(this, "MCP3008");
   mcp_3008->par_reference_voltage.Set(5.0);
   mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT1000_SOLAR).ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Solar");
-  mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT1000_ROOM).ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Room");
+  mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT100_ROOM).ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Room");
   mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT1000_BOILER_MIDDLE).ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Boiler Middle");
   mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT1000_GROUND).ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Ground");
   mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT100_BOILER_TOP).ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Boiler Top");
@@ -140,18 +140,18 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT100_FURNACE).ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Furnace");
   mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT100_GARAGE).ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Garage");
 
-  auto pt1000_room = new shared::mPT1000(this, "PT1000 Room");
-  pt1000_room->par_pre_resistance.Set(992.0);
-  pt1000_room->par_reference_voltage.Set(5.0);
-  pt1000_room->par_supply_voltage.Set(5.0);
-  pt1000_room->in_voltage.ConnectTo(mcp_3008->out_voltage.at(tMCP3008Output::ePT1000_ROOM));
+  auto pt100_room = new shared::mPT100(this, "PT1000 Room");
+  pt100_room->par_pre_resistance.Set(100.0);
+  pt100_room->par_reference_voltage.Set(5.0);
+  pt100_room->par_supply_voltage.Set(5.0);
+  pt100_room->in_voltage.ConnectTo(mcp_3008->out_voltage.at(tMCP3008Output::ePT100_ROOM));
 
   auto filter_room = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT1000 Room Filter");
   filter_room->par_number_of_ports.Set(1);
   filter_room->Init();
   filter_room->par_weight.Set(0.001);
   filter_room->par_initial_value.Set(rrlib::si_units::tCelsius<double>(20.0));
-  filter_room->in_input_values.at(0).ConnectTo(pt1000_room->out_temperature);
+  filter_room->in_input_values.at(0).ConnectTo(pt100_room->out_temperature);
   filter_room->out_filtered_values.at(0).ConnectTo(controller->si_temperature_room);
 
   auto pt1000_boiler_middle = new shared::mPT1000(this, "PT1000 Boiler Middle");
