@@ -140,13 +140,13 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT100_FURNACE).ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Furnace");
   mcp_3008->in_voltage_raw.at(tMCP3008Output::ePT100_GARAGE).ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Output/Mcp3008 Ad Voltage Garage");
 
-  auto pt100_room = new shared::mPT100(this, "PT1000 Room");
+  auto pt100_room = new shared::mPT100(this, "PT100 Room");
   pt100_room->par_pre_resistance.Set(100.0);
   pt100_room->par_reference_voltage.Set(5.0);
   pt100_room->par_supply_voltage.Set(5.0);
   pt100_room->in_voltage.ConnectTo(mcp_3008->out_voltage.at(tMCP3008Output::ePT100_ROOM));
 
-  auto filter_room = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT1000 Room Filter");
+  auto filter_room = new signal_filters::mExponentialFilter<rrlib::si_units::tCelsius<double>>(this, "PT100 Room Filter");
   filter_room->par_number_of_ports.Set(1);
   filter_room->Init();
   filter_room->par_weight.Set(0.001);

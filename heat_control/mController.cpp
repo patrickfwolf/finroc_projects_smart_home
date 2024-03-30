@@ -181,7 +181,7 @@ void mController::Sense()
   bool outdated_temperature = false;
   bool previous_outdated_temperature = std::all_of(temperature_update_error_condition_.begin(), temperature_update_error_condition_.end(), [](bool i)
   {
-    return i;
+     return i;
   });
 
   auto current_time = rrlib::time::Now();
@@ -234,8 +234,7 @@ void mController::Sense()
   if (event_log_file_.good() and outdated_temperature)
   {
     // log after a duration or new failure
-    if ((last_temperature_outdated_logging_time_ + par_temperature_error_log_interval.Get() < current_time) or
-        not previous_outdated_temperature)
+    if ((last_temperature_outdated_logging_time_ + par_temperature_error_log_interval.Get() < current_time))
     {
       event_log_file_ << rrlib::time::Now() << " Fehlerzustand: Temperaturdaten veraltet (";
       for (size_t i = 0; i < temperature_update_error_condition_.size(); i++)
@@ -508,6 +507,10 @@ void mController::Control()
 		  pump_ground_error = true;
 	  }
   }
+
+  co_pump_error_ground.Publish(pump_ground_error);
+  co_pump_error_room.Publish(pump_room_error);
+  co_pump_error_solar.Publish(pump_solar_error);
 
   // determine state
   bool state_changed = false;
