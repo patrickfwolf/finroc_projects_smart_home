@@ -167,6 +167,10 @@ public:
   tControllerOutput<bool> co_pump_error_room;
   tControllerOutput<bool> co_pump_error_ground;
 
+  tControllerOutput<bool> co_pump_working_solar;
+  tControllerOutput<bool> co_pump_working_room;
+  tControllerOutput<bool> co_pump_working_ground;
+
   tControllerOutput<tControlModeType> co_control_mode;
   tControllerOutput<heat_control_states::tCurrentState> co_heating_state;
   tControllerOutput<rrlib::si_units::tCelsius<double>> co_set_point_temperature;

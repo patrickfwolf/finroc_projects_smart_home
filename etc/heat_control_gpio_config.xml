@@ -14,4 +14,9 @@
   <port pin="8" type="digital" direction="output" name="Gpio Pump Online Solar"/>
   <port pin="9" type="digital" direction="output" name="Gpio Pump Online Ground"/>
   <port pin="0" type="digital" direction="output" name="Gpio Pump Online Room"/>
+  
+  <!-- Error states -->
+  <port pin="23" type="digital" direction="output" name="Gpio Pump Error Solar"/>
+  <port pin="24" type="digital" direction="output" name="Gpio Pump Error Ground"/>
+  <port pin="25" type="digital" direction="output" name="Gpio Pump Error Room"/>
 </raspberry_io_config>

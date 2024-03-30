@@ -98,6 +98,12 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   ci_manual_pump_room(false),
   ci_manual_pump_ground(false)
 {
+#ifdef _LIB_WIRING_PI_PRESENT_
+  auto gpio_interface = new finroc::gpio_raspberry_pi::mRaspberryIO(this, "Raspberry Pi GPIO Interface", true, 500000);
+  gpio_interface->par_configuration_file.Set("$FINROC_PROJECT_HOME/etc/heat_control_gpio_config.xml");
+  gpio_interface->Init();
+#endif
+
   auto controller = new mController(this, "Controller");
   controller->par_temperature_set_point_room.Set(23.0);
   this->si_temperature_room_external.ConnectTo(controller->si_temperature_room_external);
@@ -114,12 +120,9 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   this->so_pump_ground.ConnectTo(controller->co_pump_online_ground);
   this->so_pump_room.ConnectTo(controller->co_pump_online_room);
   this->so_pump_solar.ConnectTo(controller->co_pump_online_solar);
-
-#ifdef _LIB_WIRING_PI_PRESENT_
-  auto gpio_interface = new finroc::gpio_raspberry_pi::mRaspberryIO(this, "Raspberry Pi GPIO Interface", true, 500000);
-  gpio_interface->par_configuration_file.Set("$FINROC_PROJECT_HOME/etc/heat_control_gpio_config.xml");
-  gpio_interface->Init();
-#endif
+  controller->co_pump_working_ground.ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Input/Gpio Pump Error Ground");
+  controller->co_pump_working_solar.ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Input/Gpio Pump Error Solar");
+  controller->co_pump_working_room.ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Input/Gpio Pump Error Room");
 
   auto pump_interface = new mPumpInterface(this, "Pump Interface");
   pump_interface->in_pump_online_ground.ConnectTo(controller->co_pump_online_ground);

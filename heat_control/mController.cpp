@@ -515,6 +515,10 @@ void mController::Control()
   co_pump_error_room.Publish(pump_room_error, rrlib::time::Now());
   co_pump_error_solar.Publish(pump_solar_error, rrlib::time::Now());
 
+  co_pump_working_ground.Publish(not pump_ground_error, rrlib::time::Now());
+  co_pump_working_room.Publish(not pump_room_error, rrlib::time::Now());
+  co_pump_working_solar.Publish(not pump_solar_error, rrlib::time::Now());
+
   // determine state
   bool state_changed = false;
   std::unique_ptr<heat_control_states::tState> next_state;
