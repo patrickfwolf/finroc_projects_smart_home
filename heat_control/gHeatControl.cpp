@@ -120,9 +120,9 @@ gHeatControl::gHeatControl(core::tFrameworkElement *parent, const std::string &n
   this->so_pump_ground.ConnectTo(controller->co_pump_online_ground);
   this->so_pump_room.ConnectTo(controller->co_pump_online_room);
   this->so_pump_solar.ConnectTo(controller->co_pump_online_solar);
-  controller->co_pump_working_ground.ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Input/Gpio Pump Error Ground");
-  controller->co_pump_working_solar.ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Input/Gpio Pump Error Solar");
-  controller->co_pump_working_room.ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Input/Gpio Pump Error Room");
+  controller->co_pump_error_ground.ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Input/Gpio Pump Error Ground");
+  controller->co_pump_error_solar.ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Input/Gpio Pump Error Solar");
+  controller->co_pump_error_room.ConnectTo("/Main Thread/HeatControl/Raspberry Pi GPIO Interface/Input/Gpio Pump Error Room");
 
   auto pump_interface = new mPumpInterface(this, "Pump Interface");
   pump_interface->in_pump_online_ground.ConnectTo(controller->co_pump_online_ground);
