@@ -168,7 +168,7 @@ public:
   tControllerOutput<rrlib::si_units::tCelsius<double>> co_set_point_temperature;
 
   // set point temperature
-  tParameter<rrlib::si_units::tCelsius<double>> par_temperature_set_point_room;
+  tParameter<double> par_temperature_set_point_room;
   // max allow duration for sensor timeout
   tParameter<rrlib::time::tDuration> par_max_update_duration;
   // max allow duration until pump changes
@@ -227,6 +227,7 @@ private:
 
   shared::tTemperatures temperatures_;
   std::array<bool, tTemperatureSensors::eSENSOR_COUNT> temperature_update_error_condition_;
+  std::array<bool, tTemperatureSensors::eSENSOR_COUNT> temperature_plausibility_error_condition_;
 
   std::array<rrlib::time::tTimestamp, tPumps::eNUMBER_STATES> pump_switch_time_;
   std::array<bool, tPumps::eNUMBER_STATES> pump_last_state_;

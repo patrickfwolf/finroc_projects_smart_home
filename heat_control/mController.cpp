@@ -77,11 +77,11 @@ static runtime_construction::tStandardCreateModuleAction<mController> cCREATE_AC
 mController::mController(core::tFrameworkElement *parent, const std::string &name) :
   tSenseControlModule(parent, name, true),
   ci_control_mode(tControlModeType::eAUTOMATIC),
-  par_temperature_set_point_room("Temperature Set Point Room", this, rrlib::si_units::tCelsius<double>(23.0), "temperature_set_point_room"),
+  par_temperature_set_point_room("Temperature Set Point Room", this, 23.0, "temperature_set_point_room"),
   par_max_update_duration("Max Temperature Update Duration", this, std::chrono::seconds(10), "max_update_duration"),
   par_max_pump_update_duration("Max Pump Duration", this, std::chrono::seconds(45), "max_pump_duration"),
   par_temperature_log_interval("Temperature Log Interval", this, std::chrono::hours(1), "temperature_log_interval"),
-  par_temperature_error_log_interval("Temperature Error Log Interval", this, std::chrono::minutes(30), "temperature_outdated_error_log_interval"),
+  par_temperature_error_log_interval("Temperature Error Log Interval", this, std::chrono::hours(1), "temperature_outdated_error_log_interval"),
   control_state_(nullptr),
   set_point_(23.0),
   error_(tErrorState::eNO_ERROR),
@@ -168,7 +168,7 @@ void mController::OnParameterChange()
 {
   if (par_temperature_set_point_room.HasChanged())
   {
-    this->set_point_ = par_temperature_set_point_room.Get();
+    this->set_point_ = rrlib::si_units::tCelsius<double>(par_temperature_set_point_room.Get());
     co_set_point_temperature.Publish(set_point_, rrlib::time::Now());
   }
 }
@@ -186,46 +186,46 @@ void mController::Sense()
 
   auto current_time = rrlib::time::Now();
 
-  bool outdated = false;
-  outdated = (current_time - par_max_update_duration.Get() > si_temperature_boiler_bottom.GetTimestamp()) ? true : false;
-  so_outdated_temperature_boiler_bottom.Publish(outdated, current_time);
-  //outdated_temperature = outdated_temperature or outdated;
-  temperature_update_error_condition_.at(tTemperatureSensors::eBOILER_BOTTOM_SENSOR) = outdated;
+  bool sensor_value_outdated = false;
+  sensor_value_outdated = (current_time - par_max_update_duration.Get() > si_temperature_boiler_bottom.GetTimestamp()) ? true : false;
+  so_outdated_temperature_boiler_bottom.Publish(sensor_value_outdated, current_time);
+  outdated_temperature = outdated_temperature or sensor_value_outdated;
+  temperature_update_error_condition_.at(tTemperatureSensors::eBOILER_BOTTOM_SENSOR) = sensor_value_outdated;
 
-  outdated = (current_time - par_max_update_duration.Get() > si_temperature_boiler_top.GetTimestamp()) ? true : false;
-  so_outdated_temperature_boiler_top.Publish(outdated, current_time);
-  //outdated_temperature = outdated_temperature or outdated;
-  temperature_update_error_condition_.at(tTemperatureSensors::eBOILER_TOP_SENSOR) = outdated;
+  sensor_value_outdated = (current_time - par_max_update_duration.Get() > si_temperature_boiler_top.GetTimestamp()) ? true : false;
+  so_outdated_temperature_boiler_top.Publish(sensor_value_outdated, current_time);
+  outdated_temperature = outdated_temperature or sensor_value_outdated;
+  temperature_update_error_condition_.at(tTemperatureSensors::eBOILER_TOP_SENSOR) = sensor_value_outdated;
 
-  outdated = (current_time - par_max_update_duration.Get() > si_temperature_boiler_middle.GetTimestamp()) ? true : false;
-  so_outdated_temperature_boiler_middle.Publish(outdated, current_time);
-  outdated_temperature = outdated_temperature or outdated;
-  temperature_update_error_condition_.at(tTemperatureSensors::eBOILER_MIDDLE_SENSOR) = outdated;
+  sensor_value_outdated = (current_time - par_max_update_duration.Get() > si_temperature_boiler_middle.GetTimestamp()) ? true : false;
+  so_outdated_temperature_boiler_middle.Publish(sensor_value_outdated, current_time);
+  outdated_temperature = outdated_temperature or sensor_value_outdated;
+  temperature_update_error_condition_.at(tTemperatureSensors::eBOILER_MIDDLE_SENSOR) = sensor_value_outdated;
 
-  outdated = (current_time - par_max_update_duration.Get() > si_temperature_furnace.GetTimestamp()) ? true : false;
-  so_outdated_temperature_furnace.Publish(outdated, current_time);
-  //outdated_temperature = outdated_temperature or outdated;
-  temperature_update_error_condition_.at(tTemperatureSensors::eFURNACE_SENSOR) = outdated;
+  sensor_value_outdated = (current_time - par_max_update_duration.Get() > si_temperature_furnace.GetTimestamp()) ? true : false;
+  so_outdated_temperature_furnace.Publish(sensor_value_outdated, current_time);
+  outdated_temperature = outdated_temperature or sensor_value_outdated;
+  temperature_update_error_condition_.at(tTemperatureSensors::eFURNACE_SENSOR) = sensor_value_outdated;
 
-  outdated = (current_time - par_max_update_duration.Get() > si_temperature_garage.GetTimestamp()) ? true : false;
-  so_outdated_temperature_garage.Publish(outdated, current_time);
-  //outdated_temperature = outdated_temperature or outdated;
-  temperature_update_error_condition_.at(tTemperatureSensors::eGARAGE_SENSOR) = outdated;
+  sensor_value_outdated = (current_time - par_max_update_duration.Get() > si_temperature_garage.GetTimestamp()) ? true : false;
+  so_outdated_temperature_garage.Publish(sensor_value_outdated, current_time);
+  outdated_temperature = outdated_temperature or sensor_value_outdated;
+  temperature_update_error_condition_.at(tTemperatureSensors::eGARAGE_SENSOR) = sensor_value_outdated;
 
-  outdated = (current_time - par_max_update_duration.Get() > si_temperature_ground.GetTimestamp()) ? true : false;
-  so_outdated_temperature_ground.Publish(outdated, current_time);
-  outdated_temperature = outdated_temperature or outdated;
-  temperature_update_error_condition_.at(tTemperatureSensors::eGROUND_SENSOR) = outdated;
+  sensor_value_outdated = (current_time - par_max_update_duration.Get() > si_temperature_ground.GetTimestamp()) ? true : false;
+  so_outdated_temperature_ground.Publish(sensor_value_outdated, current_time);
+  outdated_temperature = outdated_temperature or sensor_value_outdated;
+  temperature_update_error_condition_.at(tTemperatureSensors::eGROUND_SENSOR) = sensor_value_outdated;
 
-  outdated = (current_time - par_max_update_duration.Get() > si_temperature_room.GetTimestamp()) ? true : false;
-  so_outdated_temperature_room.Publish(outdated, current_time);
-  outdated_temperature = outdated_temperature or outdated;
-  temperature_update_error_condition_.at(tTemperatureSensors::eROOM_SENSOR) = outdated;
+  sensor_value_outdated = (current_time - par_max_update_duration.Get() > si_temperature_room.GetTimestamp()) ? true : false;
+  so_outdated_temperature_room.Publish(sensor_value_outdated, current_time);
+  outdated_temperature = outdated_temperature or sensor_value_outdated;
+  temperature_update_error_condition_.at(tTemperatureSensors::eROOM_SENSOR) = sensor_value_outdated;
 
-  outdated = (current_time - par_max_update_duration.Get() > si_temperature_solar.GetTimestamp()) ? true : false;
-  so_outdated_temperature_solar.Publish(outdated, current_time);
-  outdated_temperature = outdated_temperature or outdated;
-  temperature_update_error_condition_.at(tTemperatureSensors::eSOLAR_SENSOR) = outdated;
+  sensor_value_outdated = (current_time - par_max_update_duration.Get() > si_temperature_solar.GetTimestamp()) ? true : false;
+  so_outdated_temperature_solar.Publish(sensor_value_outdated, current_time);
+  outdated_temperature = outdated_temperature or sensor_value_outdated;
+  temperature_update_error_condition_.at(tTemperatureSensors::eSOLAR_SENSOR) = sensor_value_outdated;
 
   bool external_outdated = (current_time - par_max_update_duration.Get() > si_temperature_room_external.GetTimestamp()) ? true : false;
   so_outdated_temperature_room_external.Publish(external_outdated, current_time);
@@ -260,38 +260,46 @@ void mController::Sense()
   if (this->SensorInputChanged())
   {
     // check plausibility of temperatures
-    bool implausible = false;
-    implausible = not IsTemperatureInBounds(si_temperature_room.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
-    implausible_temperature = implausible_temperature or implausible;
-    so_implausible_temperature_room.Publish(implausible, current_time);
+    bool sensor_value_implausible = false;
+    sensor_value_implausible = not IsTemperatureInBounds(si_temperature_room.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible_temperature = implausible_temperature or sensor_value_implausible;
+    so_implausible_temperature_room.Publish(sensor_value_implausible, current_time);
+    this->temperature_plausibility_error_condition_.at(tTemperatureSensors::eROOM_SENSOR) = sensor_value_implausible;
 
-    implausible = not IsTemperatureInBounds(si_temperature_solar.Get(), rrlib::si_units::tCelsius<double>(150.0), rrlib::si_units::tCelsius<double>(-40.0));
-    implausible_temperature = implausible_temperature or implausible;
-    so_implausible_temperature_solar.Publish(implausible, current_time);
+    sensor_value_implausible = not IsTemperatureInBounds(si_temperature_solar.Get(), rrlib::si_units::tCelsius<double>(150.0), rrlib::si_units::tCelsius<double>(-40.0));
+    implausible_temperature = implausible_temperature or sensor_value_implausible;
+    so_implausible_temperature_solar.Publish(sensor_value_implausible, current_time);
+    this->temperature_plausibility_error_condition_.at(tTemperatureSensors::eSOLAR_SENSOR) = sensor_value_implausible;
 
-    implausible = not IsTemperatureInBounds(si_temperature_ground.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
-    implausible_temperature = implausible_temperature or implausible;
-    so_implausible_temperature_ground.Publish(implausible, current_time);
+    sensor_value_implausible = not IsTemperatureInBounds(si_temperature_ground.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible_temperature = implausible_temperature or sensor_value_implausible;
+    so_implausible_temperature_ground.Publish(sensor_value_implausible, current_time);
+    this->temperature_plausibility_error_condition_.at(tTemperatureSensors::eGROUND_SENSOR) = sensor_value_implausible;
 
-    implausible = not IsTemperatureInBounds(si_temperature_garage.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
-    //implausible_temperature = implausible_temperature or implausible;
-    so_implausible_temperature_garage.Publish(implausible, current_time);
+    sensor_value_implausible = not IsTemperatureInBounds(si_temperature_garage.Get(), rrlib::si_units::tCelsius<double>(50.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible_temperature = implausible_temperature or sensor_value_implausible;
+    so_implausible_temperature_garage.Publish(sensor_value_implausible, current_time);
+    this->temperature_plausibility_error_condition_.at(tTemperatureSensors::eGARAGE_SENSOR) = sensor_value_implausible;
 
-    implausible = not IsTemperatureInBounds(si_temperature_furnace.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
-    //implausible_temperature = implausible_temperature or implausible;
-    so_implausible_temperature_furnace.Publish(implausible, current_time);
+    sensor_value_implausible = not IsTemperatureInBounds(si_temperature_furnace.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible_temperature = implausible_temperature or sensor_value_implausible;
+    so_implausible_temperature_furnace.Publish(sensor_value_implausible, current_time);
+    this->temperature_plausibility_error_condition_.at(tTemperatureSensors::eFURNACE_SENSOR) = sensor_value_implausible;
 
-    implausible = not IsTemperatureInBounds(si_temperature_boiler_bottom.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
-    //implausible_temperature = implausible_temperature or implausible;
-    so_implausible_temperature_boiler_bottom.Publish(implausible, current_time);
+    sensor_value_implausible = not IsTemperatureInBounds(si_temperature_boiler_bottom.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible_temperature = implausible_temperature or sensor_value_implausible;
+    so_implausible_temperature_boiler_bottom.Publish(sensor_value_implausible, current_time);
+    this->temperature_plausibility_error_condition_.at(tTemperatureSensors::eBOILER_BOTTOM_SENSOR) = sensor_value_implausible;
 
-    implausible = not IsTemperatureInBounds(si_temperature_boiler_top.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
-    //implausible_temperature = implausible_temperature or implausible;
-    so_implausible_temperature_boiler_top.Publish(implausible, current_time);
+    sensor_value_implausible = not IsTemperatureInBounds(si_temperature_boiler_top.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible_temperature = implausible_temperature or sensor_value_implausible;
+    so_implausible_temperature_boiler_top.Publish(sensor_value_implausible, current_time);
+    this->temperature_plausibility_error_condition_.at(tTemperatureSensors::eBOILER_TOP_SENSOR) = sensor_value_implausible;
 
-    implausible = not IsTemperatureInBounds(si_temperature_boiler_middle.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
-    implausible_temperature = implausible_temperature or implausible;
-    so_implausible_temperature_boiler_middle.Publish(implausible, current_time);
+    sensor_value_implausible = not IsTemperatureInBounds(si_temperature_boiler_middle.Get(), rrlib::si_units::tCelsius<double>(100.0), rrlib::si_units::tCelsius<double>(0.0));
+    implausible_temperature = implausible_temperature or sensor_value_implausible;
+    so_implausible_temperature_boiler_middle.Publish(sensor_value_implausible, current_time);
+    this->temperature_plausibility_error_condition_.at(tTemperatureSensors::eBOILER_MIDDLE_SENSOR) = sensor_value_implausible;
 
     // logging of wrong temperature values
     if (event_log_file_.good() and implausible_temperature)
@@ -299,14 +307,14 @@ void mController::Sense()
       if (last_temperature_implausible_logging_time_ + par_temperature_error_log_interval.Get() < current_time)
       {
         event_log_file_ << rrlib::time::Now() << " Fehlerzustand: Temperaturdaten sind nicht plausibel (";
-        event_log_file_ << "Raum " << si_temperature_room.Get() << "; ";
-        event_log_file_ << "Solar " << si_temperature_solar.Get() << "; ";
-        event_log_file_ << "Bodenplatte " << si_temperature_ground.Get() << "; ";
-        event_log_file_ << "Ofen " << si_temperature_furnace.Get() << "; ";
-        event_log_file_ << "Garage " << si_temperature_garage.Get() << "; ";
-        event_log_file_ << "Speicher (oben) " << si_temperature_boiler_top.Get() << "; ";
-        event_log_file_ << "Speicher (mitte) " << si_temperature_boiler_middle.Get() << "; ";
-        event_log_file_ << "Speicher (unten) " << si_temperature_boiler_bottom.Get() << ")\n";
+        event_log_file_ << "Raum " << si_temperature_room.Get().ValueFactored() << "; ";
+        event_log_file_ << "Solar " << si_temperature_solar.Get().ValueFactored() << "; ";
+        event_log_file_ << "Bodenplatte " << si_temperature_ground.Get().ValueFactored() << "; ";
+        event_log_file_ << "Ofen " << si_temperature_furnace.Get().ValueFactored() << "; ";
+        event_log_file_ << "Garage " << si_temperature_garage.Get().ValueFactored() << "; ";
+        event_log_file_ << "Speicher (oben) " << si_temperature_boiler_top.Get().ValueFactored() << "; ";
+        event_log_file_ << "Speicher (mitte) " << si_temperature_boiler_middle.Get().ValueFactored() << "; ";
+        event_log_file_ << "Speicher (unten) " << si_temperature_boiler_bottom.Get().ValueFactored() << ")\n";
 
         last_temperature_implausible_logging_time_ = current_time;
       }
@@ -462,14 +470,43 @@ void mController::Control()
     }
   }
 
-  // error handling for automatic state
-  // TODO: don't be so restrictive, but disable only parts of the functionality
+  // error condition: determine how the issue affects the pumps
+  bool pump_ground_error = false;
+  bool pump_solar_error = false;
+  bool pump_room_error = false;
+
   if ((this->error_ != tErrorState::eNO_ERROR) and not(ci_control_mode.Get() == tControlModeType::eMANUAL))
   {
-    co_pump_online_ground.Publish(false);
-    co_pump_online_room.Publish(false);
-    co_pump_online_solar.Publish(false);
-    return;
+	  bool boiler_sensor_failure_ =
+			  temperature_plausibility_error_condition_.at(tTemperatureSensors::eBOILER_MIDDLE_SENSOR) or
+			  temperature_update_error_condition_.at(tTemperatureSensors::eBOILER_MIDDLE_SENSOR);
+	  bool room_sensor_failure_ =
+			  temperature_plausibility_error_condition_.at(tTemperatureSensors::eROOM_SENSOR) or
+			  temperature_update_error_condition_.at(tTemperatureSensors::eROOM_SENSOR);
+	  bool solar_sensor_failure_ =
+			  temperature_plausibility_error_condition_.at(tTemperatureSensors::eSOLAR_SENSOR) or
+			  temperature_update_error_condition_.at(tTemperatureSensors::eSOLAR_SENSOR);
+	  bool ground_sensor_failure_ =
+			  temperature_plausibility_error_condition_.at(tTemperatureSensors::eGROUND_SENSOR) or
+			  temperature_update_error_condition_.at(tTemperatureSensors::eGROUND_SENSOR);
+
+	  // error affects room pump -> boiler temperature outdated or implausible | room temperature outdated or implausible
+	  if(boiler_sensor_failure_ or room_sensor_failure_)
+	  {
+		  pump_room_error = true;
+	  }
+
+	  // error affects solar pump -> boiler temperature outdated or implausible | solar temperature outdated or implausible
+	  if(boiler_sensor_failure_ or solar_sensor_failure_)
+	  {
+		  pump_solar_error = true;
+	  }
+
+	  // error affects ground pump -> boiler temperature outdated or implausible | ground temperature outdated or implausible
+	  if(boiler_sensor_failure_ or ground_sensor_failure_)
+	  {
+		  pump_ground_error = true;
+	  }
   }
 
   // determine state
@@ -485,14 +522,14 @@ void mController::Control()
     if (event_log_file_.good())
     {
       event_log_file_ << rrlib::time::Now() << " Automatischer Zustandswechsel: <" << make_builder::GetEnumString(control_state_->GetCurrentState());
-      event_log_file_ << ">   (Raum " << si_temperature_room.Get() << "; ";
-      event_log_file_ << "Solar " << si_temperature_solar.Get() << "; ";
-      event_log_file_ << "Bodenplatte " << si_temperature_ground.Get() << "; ";
-      event_log_file_ << "Ofen " << si_temperature_furnace.Get() << "; ";
-      event_log_file_ << "Garage " << si_temperature_garage.Get() << "; ";
-      event_log_file_ << "Speicher (oben) " << si_temperature_boiler_top.Get() << "; ";
-      event_log_file_ << "Speicher (mitte) " << si_temperature_boiler_middle.Get() << "; ";
-      event_log_file_ << "Speicher (unten) " << si_temperature_boiler_bottom.Get() << ")\n";
+      event_log_file_ << ">   (Raum " << si_temperature_room.Get().ValueFactored() << "; ";
+      event_log_file_ << "Solar " << si_temperature_solar.Get().ValueFactored() << "; ";
+      event_log_file_ << "Bodenplatte " << si_temperature_ground.Get().ValueFactored() << "; ";
+      event_log_file_ << "Ofen " << si_temperature_furnace.Get().ValueFactored() << "; ";
+      event_log_file_ << "Garage " << si_temperature_garage.Get().ValueFactored() << "; ";
+      event_log_file_ << "Speicher (oben) " << si_temperature_boiler_top.Get().ValueFactored() << "; ";
+      event_log_file_ << "Speicher (mitte) " << si_temperature_boiler_middle.Get().ValueFactored() << "; ";
+      event_log_file_ << "Speicher (unten) " << si_temperature_boiler_bottom.Get().ValueFactored() << ")\n";
     }
   }
 
@@ -518,7 +555,8 @@ void mController::Control()
 
       // check if state differs from last state and update time window is valid
       if (this->pump_last_state_.at(tPumps::eGROUND) != pumps.IsGroundOnline() and
-          this->pump_switch_time_.at(tPumps::eGROUND) + par_max_pump_update_duration.Get() < rrlib::time::Now())
+          this->pump_switch_time_.at(tPumps::eGROUND) + par_max_pump_update_duration.Get() < rrlib::time::Now() and
+		  not pump_ground_error)
       {
         co_pump_online_ground.Publish(pumps.IsGroundOnline(), rrlib::time::Now());
         this->pump_last_state_.at(tPumps::eGROUND) = pumps.IsGroundOnline();
@@ -539,7 +577,8 @@ void mController::Control()
 
       // check if state differs from last state and update time window is valid
       if (this->pump_last_state_.at(tPumps::eROOM) != pumps.IsRoomOnline() and
-          this->pump_switch_time_.at(tPumps::eROOM) + par_max_pump_update_duration.Get() < rrlib::time::Now())
+          this->pump_switch_time_.at(tPumps::eROOM) + par_max_pump_update_duration.Get() < rrlib::time::Now() and
+		  not pump_room_error)
       {
         co_pump_online_room.Publish(pumps.IsRoomOnline(), rrlib::time::Now());
         this->pump_last_state_.at(tPumps::eROOM) = pumps.IsRoomOnline();
@@ -561,7 +600,8 @@ void mController::Control()
     // solar pump cannot be disabled
     // check if state differs from last state and update time window is valid
     if (this->pump_last_state_.at(tPumps::eSOLAR) != pumps.IsSolarOnline() and
-        this->pump_switch_time_.at(tPumps::eSOLAR) + par_max_pump_update_duration.Get() < rrlib::time::Now())
+        this->pump_switch_time_.at(tPumps::eSOLAR) + par_max_pump_update_duration.Get() < rrlib::time::Now() and
+		not pump_solar_error)
     {
       co_pump_online_solar.Publish(pumps.IsSolarOnline(), rrlib::time::Now());
       this->pump_last_state_.at(tPumps::eSOLAR) = pumps.IsSolarOnline();
